@@ -12,13 +12,13 @@ CREATE TABLE datatoggle_server.destination_def(
     creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
-CREATE TYPE PARAM_DEF_TYPE AS ENUM ('STRING', 'INT', 'FLOAT', 'BOOLEAN');
+CREATE TYPE datatoggle_server.PARAM_DEF_TYPE AS ENUM ('STRING', 'INT', 'FLOAT', 'BOOLEAN');
 
 CREATE TABLE datatoggle_server.destination_param_def(
     id SERIAL PRIMARY KEY,
     uri TEXT NOT NULL UNIQUE,
     name TEXT NOT NULL,
-    type PARAM_DEF_TYPE NOT NULL,
+    type datatoggle_server.PARAM_DEF_TYPE NOT NULL,
     destination_def_id INT NOT NULL REFERENCES datatoggle_server.destination_def(id),
     creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
@@ -28,7 +28,8 @@ CREATE TABLE datatoggle_server.destination_param_def(
 CREATE TABLE datatoggle_server.customer(
     id SERIAL PRIMARY KEY,
     uri TEXT NOT NULL UNIQUE,
-    firebase_auth_uid TEXT NOT NULL UNIQUE,
+    userApiKey TEXT NOT NULL UNIQUE, -- for connection from user
+    firebase_auth_uid TEXT NOT NULL UNIQUE, -- for connection from customer dashboard
     creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
