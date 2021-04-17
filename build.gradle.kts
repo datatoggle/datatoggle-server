@@ -16,6 +16,7 @@ repositories {
 }
 
 dependencies {
+	// default deps from spring initializer
 	implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
 	implementation("org.springframework.boot:spring-boot-starter-webflux")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
@@ -27,6 +28,8 @@ dependencies {
 	runtimeOnly("org.postgresql:postgresql")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("io.projectreactor:reactor-test")
+
+	implementation("com.google.firebase:firebase-admin:7.1.1")
 }
 
 tasks.withType<KotlinCompile> {

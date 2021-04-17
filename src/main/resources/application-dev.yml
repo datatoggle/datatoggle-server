@@ -1,0 +1,10 @@
+
+spring:
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/postgres?schema=datatoggle_server
+    username: datatoggle_server_db_user
+    password: test_datatoggle_server_db_user
+
+datatoggle:
+  webapp_url: http://localhost:3000
+

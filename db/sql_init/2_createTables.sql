@@ -28,7 +28,7 @@ CREATE TABLE datatoggle_server.destination_param_def(
 CREATE TABLE datatoggle_server.customer(
     id SERIAL PRIMARY KEY,
     uri TEXT NOT NULL UNIQUE,
-    userApiKey TEXT NOT NULL UNIQUE, -- for connection from user
+    user_api_key UUID NOT NULL UNIQUE, -- for connection from user
     firebase_auth_uid TEXT NOT NULL UNIQUE, -- for connection from customer dashboard
     creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
@@ -58,8 +58,8 @@ CREATE TABLE datatoggle_server.customer_destination_param(
 
 CREATE TABLE datatoggle_server.user(
     id SERIAL PRIMARY KEY,
-    uri TEXT NOT NULL UNIQUE, -- internal, immutable uri of a user
-    user_id_for_customer TEXT NOT NULL, -- useId or anonymousId sent with identify call
+    user_uuid UUID NOT NULL UNIQUE, -- immutable datatoggle identifier of a user
+    user_id_for_customer TEXT NOT NULL, -- userId or anonymousId sent with identify call
     last_connection TIMESTAMP NOT NULL,
     customer_id INT NOT NULL REFERENCES datatoggle_server.customer(id),
     creation_datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
