@@ -5,15 +5,16 @@ import org.springframework.data.relational.core.mapping.Table
 import org.springframework.data.repository.kotlin.CoroutineCrudRepository
 import java.util.*
 
-@Table("customer")
-data class DbCustomer(
+@Table("project")
+data class DbProject(
     @Id val id: Int = 0,
     val uri: String,
-    val firebaseAuthUid: String
+    val name: String,
+    val apiKey: UUID,
+    val customerId: Int
 )
 
-interface CustomerRepo : CoroutineCrudRepository<DbCustomer, Int>{
+interface ProjectRepo : CoroutineCrudRepository<DbProject, Int>{
 
-    suspend fun findByFirebaseAuthUid(firebaseAuthUid: String): DbCustomer?
-
+    suspend fun findByCustomerId(customerId: Int): List<DbProject>
 }

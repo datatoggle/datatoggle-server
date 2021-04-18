@@ -1,13 +1,15 @@
 package com.datatoggle.server.customer
 
-data class RestCustomerConfig(
+data class RestProject(
+    val uri: String,
     val apiKey: String,
+    val name: String,
     val destinations: List<RestDestination>)
 
 data class RestDestination(
-    val isEnabled: Boolean,
     val uri: String,
-    val displayName: String,
+    val isEnabled: Boolean,
+    val name: String,
     val config: List<RestDestinationParam>
 )
 
@@ -18,7 +20,7 @@ enum class RestParamType{
 
 data class RestDestinationParam(
     val uri: String,
-    val displayName: String,
+    val name: String,
     val type: RestParamType,
     val value: Any
 )

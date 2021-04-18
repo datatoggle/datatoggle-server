@@ -6,17 +6,17 @@ import org.springframework.data.relational.core.mapping.Table
 import org.springframework.data.repository.kotlin.CoroutineCrudRepository
 import java.util.*
 
-@Table("customer_destination")
-data class DbCustomerDestination(
+@Table("project_destination")
+data class DbProjectDestination(
     @Id val id: Int = 0,
     val uri: String,
     val enabled: Boolean,
-    val customerId: Int,
+    val projectId: Int,
     val destinationUri: String,
     val config: Map<String,Any>
 )
 
-interface CustomerDestinationRepo : CoroutineCrudRepository<DbCustomerDestination, Int>{
+interface ProjectDestinationRepo : CoroutineCrudRepository<DbProjectDestination, Int>{
 
-    suspend fun findByCustomerId(customerId: Int): List<DbCustomerDestination>
+    suspend fun findByProjectId(projectId: Int): List<DbProjectDestination>
 }
