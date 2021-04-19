@@ -18,6 +18,13 @@ class CustomerRestAdapter {
             )
         }
 
+        fun getProjectSnippet(dbProject: DbProject): RestProjectSnippet {
+            return RestProjectSnippet(
+                uri = dbProject.uri,
+                name = dbProject.name,
+            )
+        }
+
         private fun getDestinations(dbDestinations: List<DbProjectDestination>): List<RestDestination> {
 
             val destMap = dbDestinations.map { it.uri to it }.toMap()

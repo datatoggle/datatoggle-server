@@ -13,24 +13,24 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseToken
 import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestHeader
 import java.util.*
 
-abstract class RequestBaseArgs(
-    val authToken: String
-)
 
-class GetProjectsArgs(authToken: String) : RequestBaseArgs(authToken)
-
-class GetProjectsReply(
-    val projects: List<RestProject>
+class GetProjectSnippetsReply(
+    val projects: List<RestProjectSnippet>
 )
 
 class PostCreateProjectArgs(
-    authToken: String,
     val projectName: String
-) : RequestBaseArgs(authToken)
+)
 
 data class PostCreateProjectReply(
+    val uri: String
+)
+
+data class GetProjectReply(
     val project: RestProject
 )
 
@@ -42,11 +42,11 @@ class CustomerRestApi(
     private val projectDestinationRepo: ProjectDestinationRepo
 ) {
 
-    @GetMapping("/api/customer/projects")
-    suspend fun getProjects(@RequestBody args: GetProjectsArgs): GetProjectsReply {
+    @GetMapping("/api/customer/project_snippets")
+    suspend fun getProjectSnippets(@RequestHeader(name="Authorization") token: String): GetProjectSnippetsReply {
 
         // https://firebase.google.com/docs/auth/admin/verify-id-tokens
-        val decodedToken = FirebaseAuth.getInstance().verifyIdToken(args.authToken)
+        val decodedToken = FirebaseAuth.getInstance().verifyIdToken(token)
         var customer = customerRepo.findByFirebaseAuthUid(decodedToken.uid)
 
         if (customer == null) {
@@ -54,12 +54,9 @@ class CustomerRestApi(
         }
 
         val dbProjects = projectRepo.findByCustomerId(customer.id)
-        val dbDestsByProj = dbProjects.map {
-            it to projectDestinationRepo.findByProjectId(it.id)
-        }
 
-        val projects = dbDestsByProj.map { CustomerRestAdapter.getProject(it.first, it.second)}
-        return GetProjectsReply(projects)
+        val projects = dbProjects.map { CustomerRestAdapter.getProjectSnippet(it)}
+        return GetProjectSnippetsReply(projects)
     }
 
     private suspend fun createNewCustomer(
@@ -74,10 +71,20 @@ class CustomerRestApi(
         )
     }
 
+    @GetMapping("/api/customer/project/{uri}")
+    suspend fun getProject(@RequestHeader(name="Authorization") token: String, @PathVariable uri: String): GetProjectReply {
+        val customer = getLoggedCustomer(token)
 
-    @PostMapping("/api/customer/project")
-    suspend fun postCreateProject(@RequestBody args: PostCreateProjectArgs): PostCreateProjectReply {
-        val customer = getLoggedCustomer(args)
+        val dbProject = projectRepo.findByUriAndCustomerId(uri, customer.id)
+        val dbDests = projectDestinationRepo.findByProjectId(dbProject.id)
+        val project = CustomerRestAdapter.getProject(dbProject, dbDests)
+        return GetProjectReply(project)
+    }
+
+
+    @PostMapping("/api/customer/projects")
+    suspend fun postCreateProject(@RequestHeader(name="Authorization") token: String, @RequestBody args: PostCreateProjectArgs): PostCreateProjectReply {
+        val customer = getLoggedCustomer(token)
         val apiKey = UUID.randomUUID()
         val project = projectRepo.save(DbProject(
             uri = generateUri("${args.projectName}_${customer.uri}", apiKey.toString()),
@@ -85,11 +92,11 @@ class CustomerRestApi(
             apiKey = apiKey,
             customerId = customer.id
         ))
-        return PostCreateProjectReply(CustomerRestAdapter.getProject(project, listOf()))
+        return PostCreateProjectReply(project.uri)
     }
 
-    private suspend fun getLoggedCustomer(args: RequestBaseArgs): DbCustomer {
-        val decodedToken = FirebaseAuth.getInstance().verifyIdToken(args.authToken)
+    private suspend fun getLoggedCustomer(token: String): DbCustomer {
+        val decodedToken = FirebaseAuth.getInstance().verifyIdToken(token)
         val customer = customerRepo.findByFirebaseAuthUid(decodedToken.uid)
         return customer!!
     }

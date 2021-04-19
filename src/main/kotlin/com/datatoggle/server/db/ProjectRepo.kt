@@ -17,4 +17,5 @@ data class DbProject(
 interface ProjectRepo : CoroutineCrudRepository<DbProject, Int>{
 
     suspend fun findByCustomerId(customerId: Int): List<DbProject>
+    suspend fun findByUriAndCustomerId(uri: String, customerId: Int): DbProject
 }

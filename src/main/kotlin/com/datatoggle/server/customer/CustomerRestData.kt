@@ -1,5 +1,10 @@
 package com.datatoggle.server.customer
 
+data class RestProjectSnippet(
+    val uri: String,
+    val name: String,
+)
+
 data class RestProject(
     val uri: String,
     val apiKey: String,
