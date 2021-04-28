@@ -9,13 +9,24 @@ data class RestProject(
     val uri: String,
     val apiKey: String,
     val name: String,
-    val destinations: List<RestDestination>)
+    val destinations: List<RestDestinationConfigWithInfo>)
 
-data class RestDestination(
+
+data class RestDestinationDef(
     val uri: String,
-    val isEnabled: Boolean,
     val name: String,
-    val config: List<RestDestinationParam>
+    val paramDefs: List<RestDestinationParamDef>
+)
+
+data class RestDestinationConfig(
+    val destinationUri: String,
+    val isEnabled: Boolean,
+    val config: Map<String,Any?>
+)
+
+data class RestDestinationConfigWithInfo(
+    val config: RestDestinationConfig,
+    val paramErrors: Map<String,String>,
 )
 
 enum class RestParamType{
@@ -23,9 +34,9 @@ enum class RestParamType{
     String,
 }
 
-data class RestDestinationParam(
+data class RestDestinationParamDef(
     val uri: String,
     val name: String,
     val type: RestParamType,
-    val value: Any
+    val defaultValue: Any
 )

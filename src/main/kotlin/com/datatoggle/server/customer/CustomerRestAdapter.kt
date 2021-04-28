@@ -9,43 +9,47 @@ class CustomerRestAdapter {
 
     companion object {
 
-        fun getProject(dbProject: DbProject, dbDestinations: List<DbProjectDestination>): RestProject {
+        fun toRestProject(dbProject: DbProject, dbDestinations: List<DbProjectDestination>): RestProject {
             return RestProject(
                 uri = dbProject.uri,
                 name = dbProject.name,
                 apiKey = dbProject.apiKey.toString(),
-                destinations = getDestinations(dbDestinations)
+                destinations = dbDestinations.map { toRestDestinationConfigWithInfo(it) }
             )
         }
 
-        fun getProjectSnippet(dbProject: DbProject): RestProjectSnippet {
+        fun toRestProjectSnippet(dbProject: DbProject): RestProjectSnippet {
             return RestProjectSnippet(
                 uri = dbProject.uri,
                 name = dbProject.name,
             )
         }
 
-        private fun getDestinations(dbDestinations: List<DbProjectDestination>): List<RestDestination> {
-
-            val destMap = dbDestinations.map { it.uri to it }.toMap()
-            return DestinationDef.values().asList().map { d ->
-                toRestDestination(d, destMap[d.uri])
-            }
+        fun toRestDestinationConfigWithInfo(dbDestination: DbProjectDestination): RestDestinationConfigWithInfo {
+            return RestDestinationConfigWithInfo(
+                config = RestDestinationConfig(
+                    destinationUri = dbDestination.destinationUri,
+                    isEnabled = dbDestination.enabled,
+                    config = dbDestination.config
+                ),
+                paramErrors = DestinationDef.byUri[dbDestination.destinationUri]!!.getParamErrors(dbDestination.config)
+            )
         }
 
-        private fun toRestDestination(def: DestinationDef, dbDest: DbProjectDestination?) = RestDestination(
-            isEnabled = false,
-            uri = def.uri,
-            name = def.displayName,
-            config = def.parameters.map { p ->
-                RestDestinationParam(
-                    uri = p.uri,
-                    name = p.displayName,
-                    type = toRestParamType(p.type),
-                    value = dbDest?.config?.getOrDefault(p.uri, p.defaultValue) ?: p.defaultValue
-                )
-            }
-        )
+        fun toRestDestinationDef(destinationDef: DestinationDef): RestDestinationDef {
+            return RestDestinationDef(
+                uri = destinationDef.uri,
+                name = destinationDef.displayName,
+                paramDefs = destinationDef.parameters.map {
+                    RestDestinationParamDef(
+                        uri = it.uri,
+                        name = it.name,
+                        type = toRestParamType(it.type),
+                        defaultValue = it.defaultValue
+                    )
+                }
+            )
+        }
 
         private fun toRestParamType(paramType: DestinationParamType): RestParamType {
             return when(paramType){
@@ -53,6 +57,8 @@ class CustomerRestAdapter {
                 DestinationParamType.Boolean -> RestParamType.Boolean
             }
         }
+
+
     }
 
 }
