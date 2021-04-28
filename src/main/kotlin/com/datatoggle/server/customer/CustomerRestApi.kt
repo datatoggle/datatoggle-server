@@ -137,8 +137,8 @@ class CustomerRestApi(
         )
 
         val restWithInfo = CustomerRestAdapter.toRestDestinationConfigWithInfo(dbDest)
-
-        return if (restWithInfo.paramErrors.isEmpty()){
+        // we don't save data if it's invalid and enabled
+        return if (restWithInfo.paramErrors.isEmpty() || !dbDest.enabled){
             val saved = projectDestinationRepo.save(dbDest)
             val result = CustomerRestAdapter.toRestDestinationConfigWithInfo(saved)
             PostDestinationConfigReply(
