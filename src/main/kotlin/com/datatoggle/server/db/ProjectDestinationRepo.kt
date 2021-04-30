@@ -10,7 +10,7 @@ data class DbProjectDestination(
     val enabled: Boolean,
     val projectId: Int,
     val destinationUri: String,
-    val config: Map<String,Any?>
+    val config: io.r2dbc.postgresql.codec.Json
 )
 
 interface ProjectDestinationRepo : CoroutineCrudRepository<DbProjectDestination, Int>{

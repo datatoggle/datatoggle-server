@@ -1,6 +1,7 @@
 package com.datatoggle.server.db
 
 import org.springframework.data.annotation.Id
+import org.springframework.data.r2dbc.repository.Query
 import org.springframework.data.relational.core.mapping.Table
 import org.springframework.data.repository.kotlin.CoroutineCrudRepository
 import java.util.*
@@ -10,12 +11,20 @@ data class DbProject(
     @Id val id: Int = 0,
     val uri: String,
     val name: String,
-    val apiKey: UUID,
-    val customerId: Int
+    val apiKey: UUID
 )
 
 interface ProjectRepo : CoroutineCrudRepository<DbProject, Int>{
 
-    suspend fun findByCustomerId(customerId: Int): List<DbProject>
-    suspend fun findByUriAndCustomerId(uri: String, customerId: Int): DbProject
+    @Query("SELECT p.* FROM project p " +
+            "JOIN project_member pm ON pm.project_id = p.id " +
+            "WHERE pm.user_account_id = :userAccountId")
+    suspend fun findByUserAccountId(userAccountId: Int): List<DbProject>
+
+    @Query("SELECT p.* FROM project p " +
+            "JOIN project_member pm ON pm.project_id = p.id " +
+            "WHERE pm.user_account_id = :userAccountId " +
+            "AND p.uri = :projectUri"
+    )
+    suspend fun findByUserAccountIdAndProjectUri(userAccountId: Int, projectUri: String): DbProject
 }

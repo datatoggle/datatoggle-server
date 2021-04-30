@@ -4,6 +4,9 @@ import com.datatoggle.server.db.DbProject
 import com.datatoggle.server.db.DbProjectDestination
 import com.datatoggle.server.destination.DestinationDef
 import com.datatoggle.server.destination.DestinationParamType
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import java.lang.reflect.Type
 
 class CustomerRestAdapter {
 
@@ -26,13 +29,17 @@ class CustomerRestAdapter {
         }
 
         fun toRestDestinationConfigWithInfo(dbDestination: DbProjectDestination): RestDestinationConfigWithInfo {
+            val gson = Gson()
+            val empMapType: Type = object : TypeToken<Map<String, Any?>?>() {}.getType()
+            val config = gson.fromJson<Map<String,Any>>(dbDestination.config.asString(), empMapType)
+
             return RestDestinationConfigWithInfo(
                 config = RestDestinationConfig(
                     destinationUri = dbDestination.destinationUri,
                     isEnabled = dbDestination.enabled,
-                    config = dbDestination.config
+                    config = config // dbDestination.config
                 ),
-                paramErrors = DestinationDef.byUri[dbDestination.destinationUri]!!.getParamErrors(dbDestination.config)
+                paramErrors = DestinationDef.byUri[dbDestination.destinationUri]!!.getParamErrors(config)
             )
         }
 

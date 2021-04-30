@@ -4,23 +4,27 @@
 -- creation_datetime: for diagnostics
 
 
--- 2) customer
-
-CREATE TABLE datatoggle_server.customer(
-    id SERIAL PRIMARY KEY,
-    uri TEXT NOT NULL UNIQUE,
-    firebase_auth_uid TEXT NOT NULL UNIQUE, -- for connection from customer dashboard
-    creation_datetime TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL
+CREATE TABLE datatoggle_server.user_account(
+   id SERIAL PRIMARY KEY,
+   uri TEXT NOT NULL UNIQUE,
+   firebase_auth_uid TEXT NOT NULL UNIQUE, -- for connection from customer dashboard
+   creation_datetime TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
-
 
 CREATE TABLE datatoggle_server.project(
     id SERIAL PRIMARY KEY,
     uri TEXT NOT NULL UNIQUE,
     name TEXT NOT NULL,
     api_key UUID NOT NULL UNIQUE, -- for connection from user
-    customer_id INT NOT NULL REFERENCES datatoggle_server.customer(id),
     creation_datetime TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+CREATE TABLE datatoggle_server.project_member(
+    id SERIAL PRIMARY KEY,
+    project_id INT NOT NULL REFERENCES datatoggle_server.project(id),
+    user_account_id INT NOT NULL REFERENCES datatoggle_server.user_account(id),
+    creation_datetime TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    UNIQUE(project_id, user_account_id)
 );
 
 CREATE TABLE datatoggle_server.project_destination(
@@ -36,7 +40,7 @@ CREATE TABLE datatoggle_server.project_destination(
 
 -- 3) user
 
-CREATE TABLE datatoggle_server.user(
+CREATE TABLE datatoggle_server.tracked_user(
     id SERIAL PRIMARY KEY,
     user_uuid UUID NOT NULL UNIQUE, -- immutable datatoggle identifier of a user
     last_connection TIMESTAMPTZ NOT NULL,

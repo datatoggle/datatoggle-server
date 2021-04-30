@@ -6,12 +6,12 @@ import org.springframework.data.repository.kotlin.CoroutineCrudRepository
 import java.time.Instant
 
 
-@Table
-data class User(
+@Table("tracked_user")
+data class TrackedUser(
     @Id val id: Int,
-    val user_uuid: String,
-    val last_connection: Instant,
-    val project_id: Int
+    val userUuid: String,
+    val lastConnection: Instant,
+    val projectId: Int
 )
 
-interface UserRepo : CoroutineCrudRepository<User, Int>
+interface TrackedUserRepo : CoroutineCrudRepository<TrackedUser, Int>

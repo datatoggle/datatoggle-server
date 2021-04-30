@@ -1,11 +1,13 @@
 package com.datatoggle.server.customer
 
-import com.datatoggle.server.db.DbCustomer
-import com.datatoggle.server.db.CustomerRepo
 import com.datatoggle.server.db.DbProject
 import com.datatoggle.server.db.DbProjectDestination
+import com.datatoggle.server.db.DbProjectMember
+import com.datatoggle.server.db.DbUserAccount
 import com.datatoggle.server.db.ProjectDestinationRepo
+import com.datatoggle.server.db.ProjectMemberRepo
 import com.datatoggle.server.db.ProjectRepo
+import com.datatoggle.server.db.UserAccountRepo
 import com.datatoggle.server.destination.DestinationDef
 import com.datatoggle.server.tools.generateUri
 import org.springframework.web.bind.annotation.PostMapping
@@ -13,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseToken
+import com.google.gson.Gson
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -43,7 +47,6 @@ data class GetDestinationDefsReply(
 
 data class PostDestinationConfigArgs(
     val projectUri: String,
-    val destinationUri: String,
     val config: RestDestinationConfig
 )
 
@@ -55,9 +58,10 @@ data class PostDestinationConfigReply(
 @CrossOrigin("\${datatoggle.webapp_url}")
 @RestController
 class CustomerRestApi(
-    private val customerRepo: CustomerRepo,
+    private val useAccountRepo: UserAccountRepo,
     private val projectRepo: ProjectRepo,
-    private val projectDestinationRepo: ProjectDestinationRepo
+    private val projectDestinationRepo: ProjectDestinationRepo,
+    private val projectMemberRepo: ProjectMemberRepo
 ) {
 
     @GetMapping("/api/customer/project-snippets")
@@ -65,25 +69,25 @@ class CustomerRestApi(
 
         // https://firebase.google.com/docs/auth/admin/verify-id-tokens
         val decodedToken = FirebaseAuth.getInstance().verifyIdToken(token)
-        var customer = customerRepo.findByFirebaseAuthUid(decodedToken.uid)
-
-        if (customer == null) {
-            customer = createNewCustomer(decodedToken)
+        var user = useAccountRepo.findByFirebaseAuthUid(decodedToken.uid)
+        if (user == null) {
+            user = createNewUserAccount(decodedToken)
         }
 
-        val dbProjects = projectRepo.findByCustomerId(customer.id)
+        val dbProjects = projectRepo.findByUserAccountId(user.id)
 
         val projects = dbProjects.map { CustomerRestAdapter.toRestProjectSnippet(it)}
         return GetProjectSnippetsReply(projects)
     }
 
-    private suspend fun createNewCustomer(
+    private suspend fun createNewUserAccount(
         decodedToken: FirebaseToken
-    ): DbCustomer {
-        val uri = generateUri(decodedToken.email, decodedToken.uid)
-        return customerRepo.save(
-            DbCustomer(
-                uri = uri,
+    ): DbUserAccount {
+        val userUri = generateUri(decodedToken.email, decodedToken.uid)
+
+        return useAccountRepo.save(
+            DbUserAccount(
+                uri = userUri,
                 firebaseAuthUid = decodedToken.uid
             )
         )
@@ -91,25 +95,34 @@ class CustomerRestApi(
 
     @GetMapping("/api/customer/project/{uri}")
     suspend fun getProject(@RequestHeader(name="Authorization") token: String, @PathVariable uri: String): GetProjectReply {
-        val customer = getLoggedCustomer(token)
+        val user = getLoggedUser(token)
 
-        val dbProject = projectRepo.findByUriAndCustomerId(uri, customer.id)
+        val dbProject = projectRepo.findByUserAccountIdAndProjectUri(user.id, uri)
+
         val dbDests = projectDestinationRepo.findByProjectId(dbProject.id)
         val project = CustomerRestAdapter.toRestProject(dbProject, dbDests)
         return GetProjectReply(project)
     }
 
 
+    @Transactional
     @PostMapping("/api/customer/projects")
     suspend fun postCreateProject(@RequestHeader(name="Authorization") token: String, @RequestBody args: PostCreateProjectArgs): PostCreateProjectReply {
-        val customer = getLoggedCustomer(token)
+        val user = getLoggedUser(token)
         val apiKey = UUID.randomUUID()
+
         val project = projectRepo.save(DbProject(
-            uri = generateUri("${args.projectName}-${customer.uri}", apiKey.toString()),
+            uri = generateUri("${args.projectName}-${user.uri}", apiKey.toString()),
             name = args.projectName,
-            apiKey = apiKey,
-            customerId = customer.id
+            apiKey = apiKey
         ))
+
+        val projectMember = projectMemberRepo.save(
+            DbProjectMember(
+                projectId = project.id,
+                userAccountId = user.id)
+        )
+
         return PostCreateProjectReply(project.uri)
     }
 
@@ -126,19 +139,23 @@ class CustomerRestApi(
         @RequestHeader(name="Authorization") token: String,
         @RequestBody args: PostDestinationConfigArgs): PostDestinationConfigReply {
 
-        val customer = getLoggedCustomer(token)
-        val project = projectRepo.findByUriAndCustomerId(args.projectUri, customer.id)
+        val user = getLoggedUser(token)
+        val project = projectRepo.findByUserAccountIdAndProjectUri(user.id, args.projectUri)
+
+        val gson = Gson()
+        val configString = gson.toJson(args.config.config)
 
         val dbDest = DbProjectDestination(
             enabled = args.config.isEnabled,
             projectId = project.id,
-            destinationUri = args.destinationUri,
-            config = args.config.config
+            destinationUri = args.config.destinationUri,
+            config = io.r2dbc.postgresql.codec.Json.of(configString) //args.config.config
         )
 
         val restWithInfo = CustomerRestAdapter.toRestDestinationConfigWithInfo(dbDest)
         // we don't save data if it's invalid and enabled
         return if (restWithInfo.paramErrors.isEmpty() || !dbDest.enabled){
+            // TODO NICO: it should be an update if it already exists
             val saved = projectDestinationRepo.save(dbDest)
             val result = CustomerRestAdapter.toRestDestinationConfigWithInfo(saved)
             PostDestinationConfigReply(
@@ -153,9 +170,10 @@ class CustomerRestApi(
         }
     }
 
-    private suspend fun getLoggedCustomer(token: String): DbCustomer {
+
+    private suspend fun getLoggedUser(token: String): DbUserAccount {
         val decodedToken = FirebaseAuth.getInstance().verifyIdToken(token)
-        val customer = customerRepo.findByFirebaseAuthUid(decodedToken.uid)
-        return customer!!
+        val user = useAccountRepo.findByFirebaseAuthUid(decodedToken.uid)
+        return user!!
     }
 }
