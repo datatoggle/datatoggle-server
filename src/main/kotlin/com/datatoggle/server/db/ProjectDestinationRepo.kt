@@ -10,10 +10,12 @@ data class DbProjectDestination(
     val enabled: Boolean,
     val projectId: Int,
     val destinationUri: String,
-    val config: io.r2dbc.postgresql.codec.Json
+    val destinationSpecificConfig: io.r2dbc.postgresql.codec.Json
 )
 
 interface ProjectDestinationRepo : CoroutineCrudRepository<DbProjectDestination, Int>{
 
     suspend fun findByProjectId(projectId: Int): List<DbProjectDestination>
+
+    suspend fun findByDestinationUriAndProjectId(destinationUri: String, projectId: Int): DbProjectDestination?
 }

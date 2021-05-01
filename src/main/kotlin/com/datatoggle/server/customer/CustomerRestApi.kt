@@ -64,6 +64,7 @@ class CustomerRestApi(
     private val projectMemberRepo: ProjectMemberRepo
 ) {
 
+    @Transactional
     @GetMapping("/api/customer/project-snippets")
     suspend fun getProjectSnippets(@RequestHeader(name="Authorization") token: String): GetProjectSnippetsReply {
 
@@ -143,19 +144,23 @@ class CustomerRestApi(
         val project = projectRepo.findByUserAccountIdAndProjectUri(user.id, args.projectUri)
 
         val gson = Gson()
-        val configString = gson.toJson(args.config.config)
+        val configString = gson.toJson(args.config.destinationSpecificConfig)
+
+        val previousDbDest =
+            projectDestinationRepo.findByDestinationUriAndProjectId(args.config.destinationUri, project.id)
 
         val dbDest = DbProjectDestination(
+            id = previousDbDest?.id ?: 0,
             enabled = args.config.isEnabled,
             projectId = project.id,
             destinationUri = args.config.destinationUri,
-            config = io.r2dbc.postgresql.codec.Json.of(configString) //args.config.config
+            destinationSpecificConfig = io.r2dbc.postgresql.codec.Json.of(configString) //args.config.config
         )
 
         val restWithInfo = CustomerRestAdapter.toRestDestinationConfigWithInfo(dbDest)
         // we don't save data if it's invalid and enabled
-        return if (restWithInfo.paramErrors.isEmpty() || !dbDest.enabled){
-            // TODO NICO: it should be an update if it already exists
+        return if (restWithInfo.paramErrors.isEmpty() || !args.config.isEnabled){
+
             val saved = projectDestinationRepo.save(dbDest)
             val result = CustomerRestAdapter.toRestDestinationConfigWithInfo(saved)
             PostDestinationConfigReply(

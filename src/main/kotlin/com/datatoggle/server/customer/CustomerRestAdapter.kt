@@ -31,13 +31,13 @@ class CustomerRestAdapter {
         fun toRestDestinationConfigWithInfo(dbDestination: DbProjectDestination): RestDestinationConfigWithInfo {
             val gson = Gson()
             val empMapType: Type = object : TypeToken<Map<String, Any?>?>() {}.getType()
-            val config = gson.fromJson<Map<String,Any>>(dbDestination.config.asString(), empMapType)
+            val config = gson.fromJson<Map<String,Any>>(dbDestination.destinationSpecificConfig.asString(), empMapType)
 
             return RestDestinationConfigWithInfo(
                 config = RestDestinationConfig(
                     destinationUri = dbDestination.destinationUri,
                     isEnabled = dbDestination.enabled,
-                    config = config // dbDestination.config
+                    destinationSpecificConfig = config // dbDestination.config
                 ),
                 paramErrors = DestinationDef.byUri[dbDestination.destinationUri]!!.getParamErrors(config)
             )

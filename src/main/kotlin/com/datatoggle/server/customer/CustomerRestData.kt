@@ -21,7 +21,7 @@ data class RestDestinationDef(
 data class RestDestinationConfig(
     val destinationUri: String,
     val isEnabled: Boolean,
-    val config: Map<String,Any?>
+    val destinationSpecificConfig: Map<String,Any?>
 )
 
 data class RestDestinationConfigWithInfo(
