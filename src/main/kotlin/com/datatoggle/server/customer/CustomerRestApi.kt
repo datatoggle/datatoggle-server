@@ -157,22 +157,13 @@ class CustomerRestApi(
             destinationSpecificConfig = io.r2dbc.postgresql.codec.Json.of(configString) //args.config.config
         )
 
-        val restWithInfo = CustomerRestAdapter.toRestDestinationConfigWithInfo(dbDest)
         // we don't save data if it's invalid and enabled
-        return if (restWithInfo.paramErrors.isEmpty() || !args.config.isEnabled){
-
-            val saved = projectDestinationRepo.save(dbDest)
-            val result = CustomerRestAdapter.toRestDestinationConfigWithInfo(saved)
-            PostDestinationConfigReply(
-                true,
-                result
-            )
-        } else {
-            PostDestinationConfigReply(
-                false,
-                restWithInfo
-            )
-        }
+        val saved = projectDestinationRepo.save(dbDest)
+        val result = CustomerRestAdapter.toRestDestinationConfigWithInfo(saved)
+        return PostDestinationConfigReply(
+            true,
+            result
+        )
     }
 
 
