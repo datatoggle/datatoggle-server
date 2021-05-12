@@ -8,31 +8,19 @@ object CommonErrors {
 enum class DestinationDef(
     val uri: String,
     val displayName: String,
+    val scriptUrl: String,
     val parameters: List<DestinationParamDef>
 ) {
 
-    Mixpanel("mixpanel", "Mixpanel", listOf(
-        DestinationParamDef("projectToken", "Project token", DestinationParamType.String, ""),
-        DestinationParamDef("euResidency", "EU residency", DestinationParamType.Boolean, false)
+    Mixpanel("mixpanel", "Mixpanel", "TODO_NICO", listOf(
+        DestinationParamDef("project_token", "Project token", DestinationParamType.String, ""),
+        DestinationParamDef("eu_residency", "EU residency", DestinationParamType.Boolean, false)
     )) {
         override fun getParamErrors(config: Map<String, Any?>): Map<String, String> {
             val result = mutableMapOf<String, String>()
-            val projectToken = config["projectToken"] as String?
+            val projectToken = config["project_token"] as String?
             if (projectToken.isNullOrBlank()){
-                result["projectToken"] = CommonErrors.mandatory("projectToken")
-            }
-            return result
-        }
-    },
-
-    Amplitude("amplitude", "Amplitude", listOf(
-        DestinationParamDef("apiKey", "API key", DestinationParamType.String, "")
-    )) {
-        override fun getParamErrors(config: Map<String, Any?>): Map<String, String> {
-            val result = mutableMapOf<String, String>()
-            val apiKey = config["apiKey"] as String?
-            if (apiKey.isNullOrBlank()){
-                result["apiKey"] = CommonErrors.mandatory("apiKey")
+                result["project_token"] = CommonErrors.mandatory("project_token")
             }
             return result
         }

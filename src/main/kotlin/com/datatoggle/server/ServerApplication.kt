@@ -1,12 +1,17 @@
 package com.datatoggle.server
 
+import com.datatoggle.server.cache.UserConfigCache
 import com.datatoggle.server.tools.FileLoader.Companion.getFileFromResource
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
+import kotlinx.coroutines.runBlocking
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
+import org.springframework.stereotype.Component
 import java.io.InputStream
+import org.springframework.boot.ApplicationArguments
+import org.springframework.boot.ApplicationRunner
 
 
 @SpringBootApplication
@@ -22,4 +27,16 @@ fun main(args: Array<String>) {
 	FirebaseApp.initializeApp(options)
 
 	runApplication<ServerApplication>(*args)
+}
+
+
+@Component
+class AppStartupRunner(private val userConfigCache: UserConfigCache) : ApplicationRunner {
+
+	override fun run(args: ApplicationArguments) {
+		runBlocking {
+			userConfigCache.initCache()
+		}
+	}
+
 }

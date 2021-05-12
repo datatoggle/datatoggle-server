@@ -1,5 +1,6 @@
 package com.datatoggle.server.customer
 
+import com.datatoggle.server.cache.UserConfigCache
 import com.datatoggle.server.db.DbProject
 import com.datatoggle.server.db.DbProjectDestination
 import com.datatoggle.server.db.DbProjectMember
@@ -61,7 +62,8 @@ class CustomerRestApi(
     private val useAccountRepo: UserAccountRepo,
     private val projectRepo: ProjectRepo,
     private val projectDestinationRepo: ProjectDestinationRepo,
-    private val projectMemberRepo: ProjectMemberRepo
+    private val projectMemberRepo: ProjectMemberRepo,
+    private val userConfigCache: UserConfigCache
 ) {
 
     @Transactional
@@ -124,6 +126,8 @@ class CustomerRestApi(
                 userAccountId = user.id)
         )
 
+        userConfigCache.reloadProjectConfig(project)
+
         return PostCreateProjectReply(project.uri)
     }
 
@@ -159,7 +163,11 @@ class CustomerRestApi(
 
         // we don't save data if it's invalid and enabled
         val saved = projectDestinationRepo.save(dbDest)
+
         val result = CustomerRestAdapter.toRestDestinationConfigWithInfo(saved)
+
+        userConfigCache.reloadProjectConfig(project)
+
         return PostDestinationConfigReply(
             true,
             result

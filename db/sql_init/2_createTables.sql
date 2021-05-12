@@ -37,14 +37,3 @@ CREATE TABLE datatoggle_server.project_destination(
     UNIQUE(project_id, destination_uri) -- for now, it's not possible to have several time the same destination
 );
 
-
--- 3) user
-
-CREATE TABLE datatoggle_server.tracked_user(
-    id SERIAL PRIMARY KEY,
-    user_uuid UUID NOT NULL UNIQUE, -- immutable datatoggle identifier of a user
-    last_connection TIMESTAMPTZ NOT NULL,
-    project_id INT NOT NULL REFERENCES datatoggle_server.project(id),
-    creation_datetime TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL
-);
-
