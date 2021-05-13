@@ -10,18 +10,19 @@ import com.datatoggle.server.db.ProjectMemberRepo
 import com.datatoggle.server.db.ProjectRepo
 import com.datatoggle.server.db.UserAccountRepo
 import com.datatoggle.server.destination.DestinationDef
+import com.datatoggle.server.tools.DbUtils
 import com.datatoggle.server.tools.generateUri
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseToken
-import com.google.gson.Gson
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestHeader
+import java.time.Instant
 import java.util.*
 
 
@@ -147,9 +148,6 @@ class CustomerRestApi(
         val user = getLoggedUser(token)
         val project = projectRepo.findByUserAccountIdAndProjectUri(user.id, args.projectUri)
 
-        val gson = Gson()
-        val configString = gson.toJson(args.config.destinationSpecificConfig)
-
         val previousDbDest =
             projectDestinationRepo.findByDestinationUriAndProjectId(args.config.destinationUri, project.id)
 
@@ -158,7 +156,8 @@ class CustomerRestApi(
             enabled = args.config.isEnabled,
             projectId = project.id,
             destinationUri = args.config.destinationUri,
-            destinationSpecificConfig = io.r2dbc.postgresql.codec.Json.of(configString) //args.config.config
+            destinationSpecificConfig = DbUtils.mapToJson(args.config.destinationSpecificConfig), //args.config.config
+            lastModificationDatetime = Instant.now()
         )
 
         // we don't save data if it's invalid and enabled

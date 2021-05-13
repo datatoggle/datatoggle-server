@@ -15,6 +15,13 @@ class DbUtils {
             return config
         }
 
+        fun mapToJson(map: Map<String, Any?>): io.r2dbc.postgresql.codec.Json {
+            val gson = Gson()
+            val jsonStr = gson.toJson(map)
+            val jsonDb = io.r2dbc.postgresql.codec.Json.of(jsonStr)
+            return jsonDb
+        }
+
     }
 
 }

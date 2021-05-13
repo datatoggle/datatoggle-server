@@ -3,6 +3,7 @@ package com.datatoggle.server.db
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
 import org.springframework.data.repository.kotlin.CoroutineCrudRepository
+import java.time.Instant
 
 @Table("project_destination")
 data class DbProjectDestination(
@@ -10,7 +11,8 @@ data class DbProjectDestination(
     val enabled: Boolean,
     val projectId: Int,
     val destinationUri: String,
-    val destinationSpecificConfig: io.r2dbc.postgresql.codec.Json
+    val destinationSpecificConfig: io.r2dbc.postgresql.codec.Json,
+    val lastModificationDatetime: Instant
 )
 
 interface ProjectDestinationRepo : CoroutineCrudRepository<DbProjectDestination, Int>{
