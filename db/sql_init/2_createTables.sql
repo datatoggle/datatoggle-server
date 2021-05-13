@@ -33,6 +33,7 @@ CREATE TABLE datatoggle_server.project_destination(
     project_id INT NOT NULL REFERENCES datatoggle_server.project(id),
     destination_uri TEXT NOT NULL,
     destination_specific_config JSONB NOT NULL,
+    last_modification_datetime TIMESTAMPTZ NOT NULL,
     creation_datetime TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
     UNIQUE(project_id, destination_uri) -- for now, it's not possible to have several time the same destination
 );

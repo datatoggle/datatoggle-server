@@ -1,4 +1,4 @@
-package com.datatoggle.server.customer
+package com.datatoggle.server.api.customer
 
 data class RestProjectSnippet(
     val uri: String,

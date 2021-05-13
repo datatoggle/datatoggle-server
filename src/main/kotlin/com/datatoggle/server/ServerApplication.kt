@@ -1,6 +1,6 @@
 package com.datatoggle.server
 
-import com.datatoggle.server.cache.UserConfigCache
+import com.datatoggle.server.api.user.v0.UserConfigCache
 import com.datatoggle.server.tools.FileLoader.Companion.getFileFromResource
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.firebase.FirebaseApp

@@ -1,6 +1,6 @@
-package com.datatoggle.server.customer
+package com.datatoggle.server.api.customer
 
-import com.datatoggle.server.cache.UserConfigCache
+import com.datatoggle.server.api.user.v0.UserConfigCache
 import com.datatoggle.server.db.DbProject
 import com.datatoggle.server.db.DbProjectDestination
 import com.datatoggle.server.db.DbProjectMember

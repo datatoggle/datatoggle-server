@@ -1,13 +1,10 @@
-package com.datatoggle.server.customer
+package com.datatoggle.server.api.customer
 
 import com.datatoggle.server.db.DbProject
 import com.datatoggle.server.db.DbProjectDestination
 import com.datatoggle.server.destination.DestinationDef
 import com.datatoggle.server.destination.DestinationParamType
 import com.datatoggle.server.tools.DbUtils
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import java.lang.reflect.Type
 
 class CustomerRestAdapter {
 
