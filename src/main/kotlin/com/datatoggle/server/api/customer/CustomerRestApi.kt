@@ -1,6 +1,5 @@
 package com.datatoggle.server.api.customer
 
-import com.datatoggle.server.api.user.v0.UserConfigCache
 import com.datatoggle.server.db.DbProject
 import com.datatoggle.server.db.DbProjectDestination
 import com.datatoggle.server.db.DbProjectMember
@@ -12,6 +11,7 @@ import com.datatoggle.server.db.UserAccountRepo
 import com.datatoggle.server.destination.DestinationDef
 import com.datatoggle.server.tools.DbUtils
 import com.datatoggle.server.tools.generateUri
+import com.datatoggle.server.user.CloudflareConfigExporter
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
@@ -64,7 +64,7 @@ class CustomerRestApi(
     private val projectRepo: ProjectRepo,
     private val projectDestinationRepo: ProjectDestinationRepo,
     private val projectMemberRepo: ProjectMemberRepo,
-    private val userConfigCache: UserConfigCache
+    private val configExporter: CloudflareConfigExporter
 ) {
 
     @Transactional
@@ -114,9 +114,10 @@ class CustomerRestApi(
     suspend fun postCreateProject(@RequestHeader(name="Authorization") token: String, @RequestBody args: PostCreateProjectArgs): PostCreateProjectReply {
         val user = getLoggedUser(token)
         val apiKey = UUID.randomUUID()
+        val apiKeyStr = apiKey.toString()
 
         val project = projectRepo.save(DbProject(
-            uri = generateUri("${args.projectName}-${user.uri}", apiKey.toString()),
+            uri = generateUri("${args.projectName}-${user.uri}", apiKeyStr),
             name = args.projectName,
             apiKey = apiKey
         ))
@@ -127,7 +128,7 @@ class CustomerRestApi(
                 userAccountId = user.id)
         )
 
-        userConfigCache.reloadProjectConfig(project)
+        configExporter.exportConf(apiKeyStr, buildConfig(project))
 
         return PostCreateProjectReply(project.uri)
     }
@@ -165,7 +166,7 @@ class CustomerRestApi(
 
         val result = CustomerRestAdapter.toRestDestinationConfigWithInfo(saved)
 
-        userConfigCache.reloadProjectConfig(project)
+        configExporter.exportConf(project.apiKey.toString(), buildConfig(project))
 
         return PostDestinationConfigReply(
             true,
@@ -178,5 +179,26 @@ class CustomerRestApi(
         val decodedToken = FirebaseAuth.getInstance().verifyIdToken(token)
         val user = useAccountRepo.findByFirebaseAuthUid(decodedToken.uid)
         return user!!
+    }
+
+    suspend fun buildConfig(dbProject: DbProject) : ClientGlobalConfig {
+        val dbDests = projectDestinationRepo
+            .findByProjectId(dbProject.id)
+            .filter { it.enabled }
+
+        val dests = dbDests.map {
+            ClientDestinationConfig(
+                scriptUrl = DestinationDef.byUri[it.destinationUri]!!.scriptUrl,
+                destinationSpecificConfig = DbUtils.jsonToMap(it.destinationSpecificConfig)
+            )
+        }
+        val lastModification = dbDests
+            .maxByOrNull { it.lastModificationDatetime }
+            ?.lastModificationDatetime ?: Instant.now()
+
+        return ClientGlobalConfig(
+            lastModification = lastModification.toString(),
+            destinations = dests
+        )
     }
 }

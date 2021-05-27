@@ -1,1 +1,7 @@
 
+
+datatoggle:
+  cloudflare:
+    account_id: ${CLOUDFLARE_ACCOUNT_ID}
+    configs_namespace_id: ${CLOUDFLARE_CONFIGS_NAMESPACE_ID}
+    api_token: ${CLOUDFLARE_API_TOKEN}

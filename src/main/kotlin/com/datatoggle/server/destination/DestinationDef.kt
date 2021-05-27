@@ -12,7 +12,7 @@ enum class DestinationDef(
     val parameters: List<DestinationParamDef>
 ) {
 
-    Mixpanel("mixpanel", "Mixpanel", "TODO_NICO", listOf(
+    Mixpanel("mixpanel", "Mixpanel", "https://datatoggle-js.web.app/integrations/mixpanel/index.js", listOf(
         DestinationParamDef("project_token", "Project token", DestinationParamType.String, ""),
         DestinationParamDef("eu_residency", "EU residency", DestinationParamType.Boolean, false)
     )) {
