@@ -7,6 +7,25 @@ addEventListener("fetch", (event) => {
 });
 
 
+async function trackEvent(apiKey, sampling){
+    const logRequest = {
+        body: JSON.stringify(
+            {
+                apiKey: apiKey,
+                sampling: sampling
+            }
+        ),
+        method: "POST",
+        headers: {
+            "Authorization": SERVER_ANALYTICS_TOKEN,
+            "content-type": "application/json",
+        }
+    }
+    const url = `${SERVER_ANALYTICS_URL}/api/analytics/tracked-sessions`
+    await fetch(url, logRequest)
+}
+
+
 async function handleRequest(event) {
     const { request } = event;
     const { pathname, searchParams } = new URL(request.url);
@@ -24,10 +43,8 @@ async function handleRequest(event) {
         return new Response(`Unknown api key '${apiKey}'`, { status: 404 })
     }
 
-    const lastModif = config.lastModification
-
     let result
-    if (lastModif === lastModifClient){
+    if (config.lastModification === lastModifClient){
         result = {
             modified: false,
             config: null
@@ -37,6 +54,11 @@ async function handleRequest(event) {
             modified: true,
             config: config
         }
+    }
+
+    const sampling = 100.0
+    if (Math.random() < 1.0/sampling){
+        event.waitUntil(trackEvent(apiKey, sampling))
     }
 
     return new Response(JSON.stringify(result), {
