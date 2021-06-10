@@ -10,8 +10,7 @@ import java.util.*
 data class DbProject(
     @Id val id: Int = 0,
     val uri: String,
-    val name: String,
-    val apiKey: UUID
+    val name: String
 )
 
 interface ProjectRepo : CoroutineCrudRepository<DbProject, Int>{

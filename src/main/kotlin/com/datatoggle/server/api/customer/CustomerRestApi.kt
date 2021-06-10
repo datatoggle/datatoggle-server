@@ -1,12 +1,16 @@
 package com.datatoggle.server.api.customer
 
 import com.datatoggle.server.db.DbProject
+import com.datatoggle.server.db.DbProjectConnection
 import com.datatoggle.server.db.DbProjectDestination
 import com.datatoggle.server.db.DbProjectMember
+import com.datatoggle.server.db.DbProjectSource
 import com.datatoggle.server.db.DbUserAccount
+import com.datatoggle.server.db.ProjectConnectionRepo
 import com.datatoggle.server.db.ProjectDestinationRepo
 import com.datatoggle.server.db.ProjectMemberRepo
 import com.datatoggle.server.db.ProjectRepo
+import com.datatoggle.server.db.ProjectSourceRepo
 import com.datatoggle.server.db.UserAccountRepo
 import com.datatoggle.server.destination.DestinationDef
 import com.datatoggle.server.tools.DbUtils
@@ -22,6 +26,7 @@ import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestHeader
+import java.io.InvalidObjectException
 import java.time.Instant
 import java.util.*
 
@@ -63,6 +68,8 @@ class CustomerRestApi(
     private val useAccountRepo: UserAccountRepo,
     private val projectRepo: ProjectRepo,
     private val projectDestinationRepo: ProjectDestinationRepo,
+    private val projectSourceRepo: ProjectSourceRepo,
+    private val projectConnectionRepo: ProjectConnectionRepo,
     private val projectMemberRepo: ProjectMemberRepo,
     private val configExporter: CloudflareConfigExporter
 ) {
@@ -104,7 +111,8 @@ class CustomerRestApi(
         val dbProject = projectRepo.findByUserAccountIdAndProjectUri(user.id, uri)
 
         val dbDests = projectDestinationRepo.findByProjectId(dbProject.id)
-        val project = CustomerRestAdapter.toRestProject(dbProject, dbDests)
+        val dbSource = getProjectSource(dbProject)
+        val project = CustomerRestAdapter.toRestProject(dbProject, dbSource, dbDests)
         return GetProjectReply(project)
     }
 
@@ -118,8 +126,7 @@ class CustomerRestApi(
 
         val project = projectRepo.save(DbProject(
             uri = generateUri("${args.projectName}-${user.uri}", apiKeyStr),
-            name = args.projectName,
-            apiKey = apiKey
+            name = args.projectName
         ))
 
         val projectMember = projectMemberRepo.save(
@@ -127,6 +134,13 @@ class CustomerRestApi(
                 projectId = project.id,
                 userAccountId = user.id)
         )
+
+        val source = projectSourceRepo.save(DbProjectSource(
+            uri = generateUri("default-source-${project.uri}"),
+            name = "Default source",
+            projectId = project.id,
+            apiKey = apiKey
+        ))
 
         configExporter.exportConf(apiKeyStr, buildConfig(project))
 
@@ -141,6 +155,7 @@ class CustomerRestApi(
         )
     }
 
+    @Transactional
     @PostMapping("/api/customer/destination-configs")
     suspend fun postUpsertDestinationConfig(
         @RequestHeader(name="Authorization") token: String,
@@ -148,6 +163,7 @@ class CustomerRestApi(
 
         val user = getLoggedUser(token)
         val project = projectRepo.findByUserAccountIdAndProjectUri(user.id, args.projectUri)
+        val dbSource = getProjectSource(project)
 
         val previousDbDest =
             projectDestinationRepo.findByDestinationUriAndProjectId(args.config.destinationUri, project.id)
@@ -162,16 +178,33 @@ class CustomerRestApi(
         )
 
         // we don't save data if it's invalid and enabled
-        val saved = projectDestinationRepo.save(dbDest)
+        val savedDest = projectDestinationRepo.save(dbDest)
 
-        val result = CustomerRestAdapter.toRestDestinationConfigWithInfo(saved)
+        if (previousDbDest == null){ // new destination -> create connection
+            projectConnectionRepo.save(DbProjectConnection(
+                projectId = project.id,
+                sourceId = dbSource.id,
+                destinationId = savedDest.id
+            ))
+        }
 
-        configExporter.exportConf(project.apiKey.toString(), buildConfig(project))
+        val result = CustomerRestAdapter.toRestDestinationConfigWithInfo(savedDest)
+
+        configExporter.exportConf(dbSource.apiKey.toString(), buildConfig(project))
 
         return PostDestinationConfigReply(
             true,
             result
         )
+    }
+
+    private suspend fun getProjectSource(project: DbProject): DbProjectSource {
+        val dbSources = projectSourceRepo.findByProjectId(project.id)
+        if (dbSources.size != 1) {
+            throw InvalidObjectException("there should be exactly one source for project '${project.uri}'")
+        }
+        val dbSource = dbSources.first()
+        return dbSource
     }
 
 

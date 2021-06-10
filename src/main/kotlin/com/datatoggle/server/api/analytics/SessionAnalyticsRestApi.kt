@@ -1,10 +1,8 @@
 package com.datatoggle.server.api.analytics
 
-import com.datatoggle.server.api.customer.PostCreateProjectArgs
 import com.datatoggle.server.db.DbTrackedSession
 import com.datatoggle.server.db.TrackedSessionRepo
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader

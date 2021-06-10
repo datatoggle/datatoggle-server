@@ -2,6 +2,7 @@ package com.datatoggle.server.api.customer
 
 import com.datatoggle.server.db.DbProject
 import com.datatoggle.server.db.DbProjectDestination
+import com.datatoggle.server.db.DbProjectSource
 import com.datatoggle.server.destination.DestinationDef
 import com.datatoggle.server.destination.DestinationParamType
 import com.datatoggle.server.tools.DbUtils
@@ -10,11 +11,11 @@ class CustomerRestAdapter {
 
     companion object {
 
-        fun toRestProject(dbProject: DbProject, dbDestinations: List<DbProjectDestination>): RestProject {
+        fun toRestProject(dbProject: DbProject, dbSource: DbProjectSource, dbDestinations: List<DbProjectDestination>): RestProject {
             return RestProject(
                 uri = dbProject.uri,
                 name = dbProject.name,
-                apiKey = dbProject.apiKey.toString(),
+                apiKey = dbSource.apiKey.toString(),
                 destinations = dbDestinations.map { toRestDestinationConfigWithInfo(it) }
             )
         }
