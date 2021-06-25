@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseToken
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.GetMapping
@@ -71,7 +72,8 @@ class CustomerRestApi(
     private val projectSourceRepo: ProjectSourceRepo,
     private val projectConnectionRepo: ProjectConnectionRepo,
     private val projectMemberRepo: ProjectMemberRepo,
-    private val configExporter: CloudflareConfigExporter
+    private val configExporter: CloudflareConfigExporter,
+    @Value("\${datatoggle.destination_scripts_url_prefix}") private val destinationScriptsUrlPrefix: String
 ) {
 
     @Transactional
@@ -142,7 +144,10 @@ class CustomerRestApi(
             apiKey = apiKey
         ))
 
-        configExporter.exportConf(apiKeyStr, buildConfig(project))
+        val success = configExporter.exportConf(apiKeyStr, buildConfig(project))
+        if (!success){
+            throw Exception("could not export config for project '${project.uri}'")
+        }
 
         return PostCreateProjectReply(project.uri)
     }
@@ -190,7 +195,10 @@ class CustomerRestApi(
 
         val result = CustomerRestAdapter.toRestDestinationConfigWithInfo(savedDest)
 
-        configExporter.exportConf(dbSource.apiKey.toString(), buildConfig(project))
+        val success = configExporter.exportConf(dbSource.apiKey.toString(), buildConfig(project))
+        if (!success){
+            throw Exception("could not export config for project '${project.uri}'")
+        }
 
         return PostDestinationConfigReply(
             true,
@@ -220,8 +228,11 @@ class CustomerRestApi(
             .filter { it.enabled }
 
         val dests = dbDests.map {
+            val destinationDef = DestinationDef.byUri[it.destinationUri]!!
             ClientDestinationConfig(
-                scriptUrl = DestinationDef.byUri[it.destinationUri]!!.scriptUrl,
+                scriptUrl = "${destinationScriptsUrlPrefix}/${destinationDef.uri}/dist/index.js",
+                scriptName = "datatoggle_${destinationDef.uri}",
+                name = destinationDef.displayName,
                 destinationSpecificConfig = DbUtils.jsonToMap(it.destinationSpecificConfig)
             )
         }
