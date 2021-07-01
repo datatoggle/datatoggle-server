@@ -62,7 +62,10 @@ async function handleRequest(event) {
     }
 
     return new Response(JSON.stringify(result), {
-        headers: { "Content-Type": "application/json" },
+        headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Content-Type": "application/json"
+        },
     });
 
 }
