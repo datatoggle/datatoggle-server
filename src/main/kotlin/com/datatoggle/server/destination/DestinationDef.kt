@@ -11,6 +11,21 @@ enum class DestinationDef(
     val parameters: List<DestinationParamDef>
 ) {
 
+    Segment("segment", "Segment", listOf(
+        DestinationParamDef("write_key", "Write key", DestinationParamType.String, "")
+    )){
+        override fun getParamErrors(config: Map<String, Any?>): Map<String, String> {
+            val result = mutableMapOf<String, String>()
+            val projectToken = config["write_key"] as String?
+            if (projectToken.isNullOrBlank()){
+                result["write_key"] = CommonErrors.mandatory("write_key")
+            }
+            return result
+        }
+
+    };
+
+    /*
     Mixpanel("mixpanel", "Mixpanel", listOf(
         DestinationParamDef("project_token", "Project token", DestinationParamType.String, ""),
         DestinationParamDef("eu_residency", "EU residency", DestinationParamType.Boolean, false)
@@ -24,6 +39,8 @@ enum class DestinationDef(
             return result
         }
     };
+    */
+
 
     companion object {
         val byUri = values().asList().map { it.uri to it }.toMap()
