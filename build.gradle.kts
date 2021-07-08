@@ -30,6 +30,7 @@ dependencies {
 	testImplementation("io.projectreactor:reactor-test")
 
 	implementation("com.google.firebase:firebase-admin:7.1.1")
+	implementation("com.google.cloud.sql:cloud-sql-connector-r2dbc-postgres:1.3.0") // to connect to cloud sql
 }
 
 tasks.withType<KotlinCompile> {

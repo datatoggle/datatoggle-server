@@ -1,0 +1,10 @@
+
+spring:
+  r2dbc:
+    url: r2dbc:gcp:postgres://@${DATATOGGLE_DB_URL}/postgres?schema=datatoggle_server
+    username: datatoggle_server_db_user
+    password: ${DATATOGGLE_DB_SERVER_PWD}
+
+datatoggle:
+  webapp_url: https://app.datatoggle.com
+  destination_scripts_url_prefix: "https://cdn.jsdelivr.net/npm/@datatoggle
