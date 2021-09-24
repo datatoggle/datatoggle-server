@@ -1,10 +1,5 @@
 package com.datatoggle.server.destination
 
-object CommonErrors {
-    fun mandatory(paramName: String): String = "$paramName is mandatory"
-}
-
-
 enum class DestinationDef(
     val uri: String,
     val displayName: String,
@@ -12,48 +7,29 @@ enum class DestinationDef(
 ) {
 
     Segment("segment", "Segment", listOf(
-        DestinationParamDef("write_key", "Write key", DestinationParamType.String, "")
+        DestinationParamDef("write_key", "Write key", DestinationParamType.String, "", true)
     )){
-        override fun getParamErrors(config: Map<String, Any?>): Map<String, String> {
-            val result = mutableMapOf<String, String>()
-            val projectToken = config["write_key"] as String?
-            if (projectToken.isNullOrBlank()){
-                result["write_key"] = CommonErrors.mandatory("write_key")
-            }
-            return result
-        }
+    },
 
-    };
-
-    /*
     Mixpanel("mixpanel", "Mixpanel", listOf(
-        DestinationParamDef("project_token", "Project token", DestinationParamType.String, ""),
-        DestinationParamDef("eu_residency", "EU residency", DestinationParamType.Boolean, false)
+        DestinationParamDef("project_token", "Project token", DestinationParamType.String, "", true),
+        DestinationParamDef("eu_residency", "EU residency", DestinationParamType.Boolean, false, true)
     )) {
-        override fun getParamErrors(config: Map<String, Any?>): Map<String, String> {
-            val result = mutableMapOf<String, String>()
-            val projectToken = config["project_token"] as String?
-            if (projectToken.isNullOrBlank()){
-                result["project_token"] = CommonErrors.mandatory("project_token")
-            }
-            return result
-        }
     };
-    */
 
 
     companion object {
         val byUri = values().asList().map { it.uri to it }.toMap()
     }
 
-    abstract fun getParamErrors(config: Map<String, Any?>): Map<String, String>
 }
 
 class DestinationParamDef(
     val uri: String,
     val name: String,
     val type: DestinationParamType,
-    val defaultValue: Any
+    val defaultValue: Any,
+    val mandatory: Boolean
 )
 
 enum class DestinationParamType {

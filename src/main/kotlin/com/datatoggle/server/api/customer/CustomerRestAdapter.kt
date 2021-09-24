@@ -34,9 +34,9 @@ class CustomerRestAdapter {
                 config = RestDestinationConfig(
                     destinationUri = dbDestination.destinationUri,
                     isEnabled = dbDestination.enabled,
-                    destinationSpecificConfig = config // dbDestination.config
+                    destinationSpecificConfig = config
                 ),
-                paramErrors = DestinationDef.byUri[dbDestination.destinationUri]!!.getParamErrors(config)
+                paramErrors = mapOf()
             )
         }
 
