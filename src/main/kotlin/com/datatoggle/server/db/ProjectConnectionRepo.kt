@@ -3,7 +3,6 @@ package com.datatoggle.server.db
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
 import org.springframework.data.repository.kotlin.CoroutineCrudRepository
-import java.util.*
 
 @Table("project_connection")
 data class DbProjectConnection(
