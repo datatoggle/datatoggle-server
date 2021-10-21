@@ -59,6 +59,7 @@ class CustomerRestAdapter {
             return when(paramType){
                 DestinationParamType.String -> RestParamType.String
                 DestinationParamType.Boolean -> RestParamType.Boolean
+                DestinationParamType.Dict -> RestParamType.Dict
             }
         }
 

@@ -12,14 +12,12 @@ enum class DestinationDef(
     },
 
     Mixpanel("mixpanel", "Mixpanel", listOf(
-        DestinationParamDef("project_token", "Project token", DestinationParamType.String, "", true),
-        DestinationParamDef("eu_residency", "EU residency", DestinationParamType.Boolean, false, true)
-    )) {
-    };
-
+        DestinationParamDef("token", "Project token", DestinationParamType.String, "", true),
+        DestinationParamDef("config", "Config", DestinationParamType.Dict, mapOf<String, Any>(), false),
+    ));
 
     companion object {
-        val byUri = values().asList().map { it.uri to it }.toMap()
+        val byUri = values().asList().associateBy { it.uri }
     }
 
 }
@@ -29,10 +27,11 @@ class DestinationParamDef(
     val name: String,
     val type: DestinationParamType,
     val defaultValue: Any,
-    val mandatory: Boolean
+    val mandatory: Boolean // mandatory == not empty (string not empty, dict not empty)
 )
 
 enum class DestinationParamType {
     String,
-    Boolean
+    Boolean,
+    Dict
 }
