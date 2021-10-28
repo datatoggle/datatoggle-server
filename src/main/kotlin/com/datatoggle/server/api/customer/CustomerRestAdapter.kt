@@ -60,6 +60,8 @@ class CustomerRestAdapter {
                 DestinationParamType.String -> RestParamType.String
                 DestinationParamType.Boolean -> RestParamType.Boolean
                 DestinationParamType.Dict -> RestParamType.Dict
+                DestinationParamType.Int -> RestParamType.Int
+                DestinationParamType.Float -> RestParamType.Float
             }
         }
 

@@ -32,7 +32,9 @@ data class RestDestinationConfigWithInfo(
 enum class RestParamType{
     Boolean,
     String,
-    Dict
+    Dict,
+    Int,
+    Float
 }
 
 data class RestDestinationParamDef(

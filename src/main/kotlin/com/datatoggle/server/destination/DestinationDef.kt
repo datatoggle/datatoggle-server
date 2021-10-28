@@ -31,6 +31,8 @@ class DestinationParamDef(
 )
 
 enum class DestinationParamType {
+    Int,
+    Float,
     String,
     Boolean,
     Dict
