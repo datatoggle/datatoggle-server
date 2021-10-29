@@ -127,7 +127,7 @@ class CustomerRestApi(
         val apiKeyStr = apiKey.toString()
 
         val project = projectRepo.save(DbProject(
-            uri = generateUri("${args.projectName}-${user.uri}", apiKeyStr),
+            uri = generateUri(args.projectName, apiKeyStr),
             name = args.projectName
         ))
 
@@ -138,7 +138,7 @@ class CustomerRestApi(
         )
 
         val source = projectSourceRepo.save(DbProjectSource(
-            uri = generateUri("default-source-${project.uri}"),
+            uri = generateUri("default-${project.uri}"),
             name = "Default source",
             projectId = project.id,
             apiKey = apiKey
