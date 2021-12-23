@@ -131,13 +131,13 @@ class CustomerRestApi(
             name = args.projectName
         ))
 
-        val projectMember = projectMemberRepo.save(
+        projectMemberRepo.save(
             DbProjectMember(
                 projectId = project.id,
                 userAccountId = user.id)
         )
 
-        val source = projectSourceRepo.save(DbProjectSource(
+        projectSourceRepo.save(DbProjectSource(
             uri = generateUri("default-${project.uri}"),
             name = "Default source",
             projectId = project.id,
