@@ -1,11 +1,11 @@
 package com.datatoggle.server.api.customer
 
-data class RestProjectSnippet(
+data class RestWorkspaceSnippet(
     val uri: String,
     val name: String,
 )
 
-data class RestProject(
+data class RestWorkspace(
     val uri: String,
     val apiKey: String,
     val name: String,

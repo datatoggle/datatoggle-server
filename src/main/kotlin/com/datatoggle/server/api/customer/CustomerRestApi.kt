@@ -32,21 +32,21 @@ import java.time.Instant
 import java.util.*
 
 
-class GetProjectSnippetsReply(
+class GetWorkspaceSnippetsReply(
     @Suppress("unused")
-    val projects: List<RestProjectSnippet>
+    val workspaces: List<RestWorkspaceSnippet>
 )
 
-class PostCreateProjectArgs(
-    val projectName: String
+class PostCreateWorkspaceArgs(
+    val workspaceName: String
 )
 
-data class PostCreateProjectReply(
+data class PostCreateWorkspaceReply(
     val uri: String
 )
 
-data class GetProjectReply(
-    val project: RestProject
+data class GetWorkspaceReply(
+    val workspace: RestWorkspace
 )
 
 data class GetDestinationDefsReply(
@@ -54,7 +54,7 @@ data class GetDestinationDefsReply(
 )
 
 data class PostDestinationConfigArgs(
-    val projectUri: String,
+    val workspaceUri: String,
     val config: RestDestinationConfig
 )
 
@@ -77,8 +77,8 @@ class CustomerRestApi(
 ) {
 
     @Transactional
-    @GetMapping("/api/customer/project-snippets")
-    suspend fun getProjectSnippets(@RequestHeader(name="Authorization") token: String): GetProjectSnippetsReply {
+    @GetMapping("/api/customer/workspace-snippets")
+    suspend fun getWorkspaceSnippets(@RequestHeader(name="Authorization") token: String): GetWorkspaceSnippetsReply {
 
         // https://firebase.google.com/docs/auth/admin/verify-id-tokens
         val decodedToken = FirebaseAuth.getInstance().verifyIdToken(token)
@@ -87,10 +87,10 @@ class CustomerRestApi(
             user = createNewUserAccount(decodedToken)
         }
 
-        val dbProjects = workspaceRepo.findByUserAccountId(user.id)
+        val dbWorkspaces = workspaceRepo.findByUserAccountId(user.id)
 
-        val projects = dbProjects.map { CustomerRestAdapter.toRestProjectSnippet(it)}
-        return GetProjectSnippetsReply(projects)
+        val workspaces = dbWorkspaces.map { CustomerRestAdapter.toRestWorkspaceSnippet(it)}
+        return GetWorkspaceSnippetsReply(workspaces)
     }
 
     private suspend fun createNewUserAccount(
@@ -106,50 +106,50 @@ class CustomerRestApi(
         )
     }
 
-    @GetMapping("/api/customer/project/{uri}")
-    suspend fun getProject(@RequestHeader(name="Authorization") token: String, @PathVariable uri: String): GetProjectReply {
+    @GetMapping("/api/customer/workspace/{uri}")
+    suspend fun getWorkspace(@RequestHeader(name="Authorization") token: String, @PathVariable uri: String): GetWorkspaceReply {
         val user = getLoggedUser(token)
 
-        val dbProject = workspaceRepo.findByUserAccountIdAndWorkspaceUri(user.id, uri)
+        val dbWorkspace = workspaceRepo.findByUserAccountIdAndWorkspaceUri(user.id, uri)
 
-        val dbDests = workspaceDestinationRepo.findByWorkspaceId(dbProject.id)
-        val dbSource = getProjectSource(dbProject)
-        val project = CustomerRestAdapter.toRestProject(dbProject, dbSource, dbDests)
-        return GetProjectReply(project)
+        val dbDests = workspaceDestinationRepo.findByWorkspaceId(dbWorkspace.id)
+        val dbSource = getWorkspaceSource(dbWorkspace)
+        val workspace = CustomerRestAdapter.toRestWorkspace(dbWorkspace, dbSource, dbDests)
+        return GetWorkspaceReply(workspace)
     }
 
 
     @Transactional
-    @PostMapping("/api/customer/projects")
-    suspend fun postCreateProject(@RequestHeader(name="Authorization") token: String, @RequestBody args: PostCreateProjectArgs): PostCreateProjectReply {
+    @PostMapping("/api/customer/workspaces")
+    suspend fun postCreateWorkspace(@RequestHeader(name="Authorization") token: String, @RequestBody args: PostCreateWorkspaceArgs): PostCreateWorkspaceReply {
         val user = getLoggedUser(token)
         val apiKey = UUID.randomUUID()
         val apiKeyStr = apiKey.toString()
 
-        val project = workspaceRepo.save(DbWorkspace(
-            uri = generateUri(args.projectName, apiKeyStr),
-            name = args.projectName
+        val workspace = workspaceRepo.save(DbWorkspace(
+            uri = generateUri(args.workspaceName, apiKeyStr),
+            name = args.workspaceName
         ))
 
         workspaceMemberRepo.save(
             DbWorkspaceMember(
-                workspaceId = project.id,
+                workspaceId = workspace.id,
                 userAccountId = user.id)
         )
 
         workspaceSourceRepo.save(DbWorkspaceSource(
-            uri = generateUri("default-${project.uri}"),
+            uri = generateUri("default-${workspace.uri}"),
             name = "Default source",
-            workspaceId = project.id,
+            workspaceId = workspace.id,
             apiKey = apiKey
         ))
 
-        val success = configExporter.exportConf(apiKeyStr, buildConfig(project))
+        val success = configExporter.exportConf(apiKeyStr, buildConfig(workspace))
         if (!success){
-            throw Exception("could not export config for project '${project.uri}'")
+            throw Exception("could not export config for workspace '${workspace.uri}'")
         }
 
-        return PostCreateProjectReply(project.uri)
+        return PostCreateWorkspaceReply(workspace.uri)
     }
 
     @GetMapping("/api/customer/destination-defs")
@@ -167,16 +167,16 @@ class CustomerRestApi(
         @RequestBody args: PostDestinationConfigArgs): PostDestinationConfigReply {
 
         val user = getLoggedUser(token)
-        val project = workspaceRepo.findByUserAccountIdAndWorkspaceUri(user.id, args.projectUri)
-        val dbSource = getProjectSource(project)
+        val workspace = workspaceRepo.findByUserAccountIdAndWorkspaceUri(user.id, args.workspaceUri)
+        val dbSource = getWorkspaceSource(workspace)
 
         val previousDbDest =
-            workspaceDestinationRepo.findByDestinationUriAndWorkspaceId(args.config.destinationUri, project.id)
+            workspaceDestinationRepo.findByDestinationUriAndWorkspaceId(args.config.destinationUri, workspace.id)
 
         val dbDest = DbWorkspaceDestination(
             id = previousDbDest?.id ?: 0,
             enabled = args.config.isEnabled,
-            workspaceId = project.id,
+            workspaceId = workspace.id,
             destinationUri = args.config.destinationUri,
             destinationSpecificConfig = DbUtils.mapToJson(args.config.destinationSpecificConfig), //args.config.config
             lastModificationDatetime = Instant.now()
@@ -187,7 +187,7 @@ class CustomerRestApi(
 
         if (previousDbDest == null){ // new destination -> create connection
             workspaceConnectionRepo.save(DbWorkspaceConnection(
-                workspaceId = project.id,
+                workspaceId = workspace.id,
                 sourceId = dbSource.id,
                 destinationId = savedDest.id
             ))
@@ -195,9 +195,9 @@ class CustomerRestApi(
 
         val result = CustomerRestAdapter.toRestDestinationConfigWithInfo(savedDest)
 
-        val success = configExporter.exportConf(dbSource.apiKey.toString(), buildConfig(project))
+        val success = configExporter.exportConf(dbSource.apiKey.toString(), buildConfig(workspace))
         if (!success){
-            throw Exception("could not export config for project '${project.uri}'")
+            throw Exception("could not export config for workspace '${workspace.uri}'")
         }
 
         return PostDestinationConfigReply(
@@ -206,10 +206,10 @@ class CustomerRestApi(
         )
     }
 
-    private suspend fun getProjectSource(project: DbWorkspace): DbWorkspaceSource {
-        val dbSources = workspaceSourceRepo.findByWorkspaceId(project.id)
+    private suspend fun getWorkspaceSource(workspace: DbWorkspace): DbWorkspaceSource {
+        val dbSources = workspaceSourceRepo.findByWorkspaceId(workspace.id)
         if (dbSources.size != 1) {
-            throw InvalidObjectException("there should be exactly one source for project '${project.uri}'")
+            throw InvalidObjectException("there should be exactly one source for workspace '${workspace.uri}'")
         }
         val dbSource = dbSources.first()
         return dbSource

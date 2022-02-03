@@ -11,8 +11,8 @@ class CustomerRestAdapter {
 
     companion object {
 
-        fun toRestProject(dbWorkspace: DbWorkspace, dbSource: DbWorkspaceSource, dbDestinations: List<DbWorkspaceDestination>): RestProject {
-            return RestProject(
+        fun toRestWorkspace(dbWorkspace: DbWorkspace, dbSource: DbWorkspaceSource, dbDestinations: List<DbWorkspaceDestination>): RestWorkspace {
+            return RestWorkspace(
                 uri = dbWorkspace.uri,
                 name = dbWorkspace.name,
                 apiKey = dbSource.apiKey.toString(),
@@ -20,8 +20,8 @@ class CustomerRestAdapter {
             )
         }
 
-        fun toRestProjectSnippet(dbWorkspace: DbWorkspace): RestProjectSnippet {
-            return RestProjectSnippet(
+        fun toRestWorkspaceSnippet(dbWorkspace: DbWorkspace): RestWorkspaceSnippet {
+            return RestWorkspaceSnippet(
                 uri = dbWorkspace.uri,
                 name = dbWorkspace.name,
             )
