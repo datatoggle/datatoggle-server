@@ -1,8 +1,8 @@
 package com.datatoggle.server.api.customer
 
-import com.datatoggle.server.db.DbProject
-import com.datatoggle.server.db.DbProjectDestination
-import com.datatoggle.server.db.DbProjectSource
+import com.datatoggle.server.db.DbWorkspace
+import com.datatoggle.server.db.DbWorkspaceDestination
+import com.datatoggle.server.db.DbWorkspaceSource
 import com.datatoggle.server.destination.DestinationDef
 import com.datatoggle.server.destination.DestinationParamType
 import com.datatoggle.server.tools.DbUtils
@@ -11,23 +11,23 @@ class CustomerRestAdapter {
 
     companion object {
 
-        fun toRestProject(dbProject: DbProject, dbSource: DbProjectSource, dbDestinations: List<DbProjectDestination>): RestProject {
+        fun toRestProject(dbWorkspace: DbWorkspace, dbSource: DbWorkspaceSource, dbDestinations: List<DbWorkspaceDestination>): RestProject {
             return RestProject(
-                uri = dbProject.uri,
-                name = dbProject.name,
+                uri = dbWorkspace.uri,
+                name = dbWorkspace.name,
                 apiKey = dbSource.apiKey.toString(),
                 destinations = dbDestinations.map { toRestDestinationConfigWithInfo(it) }
             )
         }
 
-        fun toRestProjectSnippet(dbProject: DbProject): RestProjectSnippet {
+        fun toRestProjectSnippet(dbWorkspace: DbWorkspace): RestProjectSnippet {
             return RestProjectSnippet(
-                uri = dbProject.uri,
-                name = dbProject.name,
+                uri = dbWorkspace.uri,
+                name = dbWorkspace.name,
             )
         }
 
-        fun toRestDestinationConfigWithInfo(dbDestination: DbProjectDestination): RestDestinationConfigWithInfo {
+        fun toRestDestinationConfigWithInfo(dbDestination: DbWorkspaceDestination): RestDestinationConfigWithInfo {
             val config = DbUtils.jsonToMap(dbDestination.destinationSpecificConfig)
 
             return RestDestinationConfigWithInfo(

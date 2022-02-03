@@ -5,19 +5,19 @@ import org.springframework.data.relational.core.mapping.Table
 import org.springframework.data.repository.kotlin.CoroutineCrudRepository
 import java.time.Instant
 
-@Table("project_destination")
-data class DbProjectDestination(
+@Table("workspace_destination")
+data class DbWorkspaceDestination(
     @Id val id: Int = 0,
     val enabled: Boolean,
-    val projectId: Int,
+    val workspaceId: Int,
     val destinationUri: String,
     val destinationSpecificConfig: io.r2dbc.postgresql.codec.Json,
     val lastModificationDatetime: Instant
 )
 
-interface ProjectDestinationRepo : CoroutineCrudRepository<DbProjectDestination, Int>{
+interface WorkspaceDestinationRepo : CoroutineCrudRepository<DbWorkspaceDestination, Int>{
 
-    suspend fun findByProjectId(projectId: Int): List<DbProjectDestination>
+    suspend fun findByWorkspaceId(workspaceId: Int): List<DbWorkspaceDestination>
 
-    suspend fun findByDestinationUriAndProjectId(destinationUri: String, projectId: Int): DbProjectDestination?
+    suspend fun findByDestinationUriAndWorkspaceId(destinationUri: String, workspaceId: Int): DbWorkspaceDestination?
 }

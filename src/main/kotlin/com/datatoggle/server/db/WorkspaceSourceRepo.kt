@@ -5,16 +5,16 @@ import org.springframework.data.relational.core.mapping.Table
 import org.springframework.data.repository.kotlin.CoroutineCrudRepository
 import java.util.*
 
-@Table("project_source")
-data class DbProjectSource(
+@Table("workspace_source")
+data class DbWorkspaceSource(
     @Id val id: Int = 0,
     val uri: String,
     val name: String,
-    val projectId: Int,
+    val workspaceId: Int,
     val apiKey: UUID
 )
 
-interface ProjectSourceRepo : CoroutineCrudRepository<DbProjectSource, Int>{
+interface WorkspaceSourceRepo : CoroutineCrudRepository<DbWorkspaceSource, Int>{
 
-    suspend fun findByProjectId(projectId: Int): List<DbProjectSource>
+    suspend fun findByWorkspaceId(workspaceId: Int): List<DbWorkspaceSource>
 }

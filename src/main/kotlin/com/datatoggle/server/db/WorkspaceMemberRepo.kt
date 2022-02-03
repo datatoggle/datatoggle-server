@@ -3,18 +3,12 @@ package com.datatoggle.server.db
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
 import org.springframework.data.repository.kotlin.CoroutineCrudRepository
-import java.util.*
 
-
-@Table("tracked_session")
-data class DbTrackedSession(
+@Table("workspace_member")
+data class DbWorkspaceMember(
     @Id val id: Int = 0,
-    val apiKey: UUID,
-    val sampling: Int
+    val workspaceId: Int,
+    val userAccountId: Int
 )
 
-interface TrackedSessionRepo : CoroutineCrudRepository<DbTrackedSession, Int> {
-
-
-
-}
+interface WorkspaceMemberRepo : CoroutineCrudRepository<DbWorkspaceMember, Int>

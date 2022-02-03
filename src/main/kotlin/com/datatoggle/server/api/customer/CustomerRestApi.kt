@@ -1,16 +1,16 @@
 package com.datatoggle.server.api.customer
 
-import com.datatoggle.server.db.DbProject
-import com.datatoggle.server.db.DbProjectConnection
-import com.datatoggle.server.db.DbProjectDestination
-import com.datatoggle.server.db.DbProjectMember
-import com.datatoggle.server.db.DbProjectSource
+import com.datatoggle.server.db.DbWorkspace
+import com.datatoggle.server.db.DbWorkspaceConnection
+import com.datatoggle.server.db.DbWorkspaceDestination
+import com.datatoggle.server.db.DbWorkspaceMember
+import com.datatoggle.server.db.DbWorkspaceSource
 import com.datatoggle.server.db.DbUserAccount
-import com.datatoggle.server.db.ProjectConnectionRepo
-import com.datatoggle.server.db.ProjectDestinationRepo
-import com.datatoggle.server.db.ProjectMemberRepo
-import com.datatoggle.server.db.ProjectRepo
-import com.datatoggle.server.db.ProjectSourceRepo
+import com.datatoggle.server.db.WorkspaceConnectionRepo
+import com.datatoggle.server.db.WorkspaceDestinationRepo
+import com.datatoggle.server.db.WorkspaceMemberRepo
+import com.datatoggle.server.db.WorkspaceRepo
+import com.datatoggle.server.db.WorkspaceSourceRepo
 import com.datatoggle.server.db.UserAccountRepo
 import com.datatoggle.server.destination.DestinationDef
 import com.datatoggle.server.tools.DbUtils
@@ -67,11 +67,11 @@ data class PostDestinationConfigReply(
 @RestController
 class CustomerRestApi(
     private val useAccountRepo: UserAccountRepo,
-    private val projectRepo: ProjectRepo,
-    private val projectDestinationRepo: ProjectDestinationRepo,
-    private val projectSourceRepo: ProjectSourceRepo,
-    private val projectConnectionRepo: ProjectConnectionRepo,
-    private val projectMemberRepo: ProjectMemberRepo,
+    private val workspaceRepo: WorkspaceRepo,
+    private val workspaceDestinationRepo: WorkspaceDestinationRepo,
+    private val workspaceSourceRepo: WorkspaceSourceRepo,
+    private val workspaceConnectionRepo: WorkspaceConnectionRepo,
+    private val workspaceMemberRepo: WorkspaceMemberRepo,
     private val configExporter: CloudflareConfigExporter,
     @Value("\${datatoggle.destination_scripts_url_prefix}") private val destinationScriptsUrlPrefix: String
 ) {
@@ -87,7 +87,7 @@ class CustomerRestApi(
             user = createNewUserAccount(decodedToken)
         }
 
-        val dbProjects = projectRepo.findByUserAccountId(user.id)
+        val dbProjects = workspaceRepo.findByUserAccountId(user.id)
 
         val projects = dbProjects.map { CustomerRestAdapter.toRestProjectSnippet(it)}
         return GetProjectSnippetsReply(projects)
@@ -110,9 +110,9 @@ class CustomerRestApi(
     suspend fun getProject(@RequestHeader(name="Authorization") token: String, @PathVariable uri: String): GetProjectReply {
         val user = getLoggedUser(token)
 
-        val dbProject = projectRepo.findByUserAccountIdAndProjectUri(user.id, uri)
+        val dbProject = workspaceRepo.findByUserAccountIdAndWorkspaceUri(user.id, uri)
 
-        val dbDests = projectDestinationRepo.findByProjectId(dbProject.id)
+        val dbDests = workspaceDestinationRepo.findByWorkspaceId(dbProject.id)
         val dbSource = getProjectSource(dbProject)
         val project = CustomerRestAdapter.toRestProject(dbProject, dbSource, dbDests)
         return GetProjectReply(project)
@@ -126,21 +126,21 @@ class CustomerRestApi(
         val apiKey = UUID.randomUUID()
         val apiKeyStr = apiKey.toString()
 
-        val project = projectRepo.save(DbProject(
+        val project = workspaceRepo.save(DbWorkspace(
             uri = generateUri(args.projectName, apiKeyStr),
             name = args.projectName
         ))
 
-        projectMemberRepo.save(
-            DbProjectMember(
-                projectId = project.id,
+        workspaceMemberRepo.save(
+            DbWorkspaceMember(
+                workspaceId = project.id,
                 userAccountId = user.id)
         )
 
-        projectSourceRepo.save(DbProjectSource(
+        workspaceSourceRepo.save(DbWorkspaceSource(
             uri = generateUri("default-${project.uri}"),
             name = "Default source",
-            projectId = project.id,
+            workspaceId = project.id,
             apiKey = apiKey
         ))
 
@@ -167,27 +167,27 @@ class CustomerRestApi(
         @RequestBody args: PostDestinationConfigArgs): PostDestinationConfigReply {
 
         val user = getLoggedUser(token)
-        val project = projectRepo.findByUserAccountIdAndProjectUri(user.id, args.projectUri)
+        val project = workspaceRepo.findByUserAccountIdAndWorkspaceUri(user.id, args.projectUri)
         val dbSource = getProjectSource(project)
 
         val previousDbDest =
-            projectDestinationRepo.findByDestinationUriAndProjectId(args.config.destinationUri, project.id)
+            workspaceDestinationRepo.findByDestinationUriAndWorkspaceId(args.config.destinationUri, project.id)
 
-        val dbDest = DbProjectDestination(
+        val dbDest = DbWorkspaceDestination(
             id = previousDbDest?.id ?: 0,
             enabled = args.config.isEnabled,
-            projectId = project.id,
+            workspaceId = project.id,
             destinationUri = args.config.destinationUri,
             destinationSpecificConfig = DbUtils.mapToJson(args.config.destinationSpecificConfig), //args.config.config
             lastModificationDatetime = Instant.now()
         )
 
         // we don't save data if it's invalid and enabled
-        val savedDest = projectDestinationRepo.save(dbDest)
+        val savedDest = workspaceDestinationRepo.save(dbDest)
 
         if (previousDbDest == null){ // new destination -> create connection
-            projectConnectionRepo.save(DbProjectConnection(
-                projectId = project.id,
+            workspaceConnectionRepo.save(DbWorkspaceConnection(
+                workspaceId = project.id,
                 sourceId = dbSource.id,
                 destinationId = savedDest.id
             ))
@@ -206,8 +206,8 @@ class CustomerRestApi(
         )
     }
 
-    private suspend fun getProjectSource(project: DbProject): DbProjectSource {
-        val dbSources = projectSourceRepo.findByProjectId(project.id)
+    private suspend fun getProjectSource(project: DbWorkspace): DbWorkspaceSource {
+        val dbSources = workspaceSourceRepo.findByWorkspaceId(project.id)
         if (dbSources.size != 1) {
             throw InvalidObjectException("there should be exactly one source for project '${project.uri}'")
         }
@@ -222,9 +222,9 @@ class CustomerRestApi(
         return user!!
     }
 
-    suspend fun buildConfig(dbProject: DbProject) : ClientGlobalConfig {
-        val dbDests = projectDestinationRepo
-            .findByProjectId(dbProject.id)
+    suspend fun buildConfig(dbWorkspace: DbWorkspace) : ClientGlobalConfig {
+        val dbDests = workspaceDestinationRepo
+            .findByWorkspaceId(dbWorkspace.id)
             .filter { it.enabled }
 
         val dests = dbDests.map {
