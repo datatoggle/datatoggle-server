@@ -1,5 +1,7 @@
 package com.datatoggle.server.api.customer
 
+import com.auth0.jwt.JWT
+import com.auth0.jwt.algorithms.Algorithm
 import com.datatoggle.server.db.DbWorkspace
 import com.datatoggle.server.db.DbWorkspaceConnection
 import com.datatoggle.server.db.DbWorkspaceDestination
@@ -47,6 +49,10 @@ data class PostCreateWorkspaceReply(
 
 data class GetWorkspaceReply(
     val workspace: RestWorkspace
+)
+
+data class GetUserInfoReply(
+    val userInfo: RestUserInfo
 )
 
 data class GetDestinationDefsReply(
@@ -119,6 +125,22 @@ class CustomerRestApi(
     }
 
 
+
+    @GetMapping("/api/customer/userinfo")
+    suspend fun getUserInfo(@RequestHeader(name="Authorization") token: String): GetUserInfoReply {
+
+        val user = getLoggedUser(token)
+
+        val upvotyToken = JWT.create()
+            .withClaim("id", user.uri)
+            .withClaim("name", user.uri)
+            .sign(Algorithm.HMAC256("f4e41729b5df13965c8cb000dfd87eb4"))
+
+        return GetUserInfoReply(RestUserInfo(user.uri, upvotyToken))
+    }
+
+
+
     @Transactional
     @PostMapping("/api/customer/workspaces")
     suspend fun postCreateWorkspace(@RequestHeader(name="Authorization") token: String, @RequestBody args: PostCreateWorkspaceArgs): PostCreateWorkspaceReply {
@@ -153,7 +175,8 @@ class CustomerRestApi(
     }
 
     @GetMapping("/api/customer/destination-defs")
-    suspend fun getDestinationDefs(): GetDestinationDefsReply{
+    suspend fun getDestinationDefs(@RequestHeader(name="Authorization") token: String): GetDestinationDefsReply{
+
         return GetDestinationDefsReply(
             DestinationDef.values().asList()
             .map { CustomerRestAdapter.toRestDestinationDef(it) }
