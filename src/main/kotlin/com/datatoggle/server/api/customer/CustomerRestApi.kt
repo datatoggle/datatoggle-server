@@ -1,7 +1,5 @@
 package com.datatoggle.server.api.customer
 
-import com.auth0.jwt.JWT
-import com.auth0.jwt.algorithms.Algorithm
 import com.datatoggle.server.db.DbWorkspace
 import com.datatoggle.server.db.DbWorkspaceConnection
 import com.datatoggle.server.db.DbWorkspaceDestination
@@ -124,22 +122,11 @@ class CustomerRestApi(
         return GetWorkspaceReply(workspace)
     }
 
-
-
     @GetMapping("/api/customer/userinfo")
     suspend fun getUserInfo(@RequestHeader(name="Authorization") token: String): GetUserInfoReply {
-
         val user = getLoggedUser(token)
-
-        val upvotyToken = JWT.create()
-            .withClaim("id", user.uri)
-            .withClaim("name", user.uri)
-            .sign(Algorithm.HMAC256("f4e41729b5df13965c8cb000dfd87eb4"))
-
-        return GetUserInfoReply(RestUserInfo(user.uri, upvotyToken))
+        return GetUserInfoReply(RestUserInfo(user.uri))
     }
-
-
 
     @Transactional
     @PostMapping("/api/customer/workspaces")

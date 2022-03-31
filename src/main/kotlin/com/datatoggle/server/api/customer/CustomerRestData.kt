@@ -12,8 +12,7 @@ data class RestWorkspace(
     val destinations: List<RestDestinationConfigWithInfo>)
 
 data class RestUserInfo(
-    val uri: String,
-    val upvotyToken: String)
+    val uri: String)
 
 data class RestDestinationDef(
     val uri: String,

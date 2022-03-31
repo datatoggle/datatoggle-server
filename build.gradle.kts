@@ -31,8 +31,6 @@ dependencies {
 
 	implementation("com.google.firebase:firebase-admin:7.1.1")
 	implementation("com.google.cloud.sql:cloud-sql-connector-r2dbc-postgres:1.3.0") // to connect to cloud sql
-
-	implementation("com.auth0:java-jwt:3.19.0") // to build upvoty token
 }
 
 tasks.withType<KotlinCompile> {
