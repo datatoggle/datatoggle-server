@@ -1,11 +1,13 @@
 package com.datatoggle.server.api.customer
 
+import com.datatoggle.server.db.DbEvent
 import com.datatoggle.server.db.DbWorkspace
 import com.datatoggle.server.db.DbWorkspaceConnection
 import com.datatoggle.server.db.DbWorkspaceDestination
 import com.datatoggle.server.db.DbWorkspaceMember
 import com.datatoggle.server.db.DbWorkspaceSource
 import com.datatoggle.server.db.DbUserAccount
+import com.datatoggle.server.db.EventRepo
 import com.datatoggle.server.db.WorkspaceConnectionRepo
 import com.datatoggle.server.db.WorkspaceDestinationRepo
 import com.datatoggle.server.db.WorkspaceMemberRepo
@@ -67,6 +69,11 @@ data class PostDestinationConfigReply(
     val configWithInfo: RestDestinationConfigWithInfo
 )
 
+class PostEventArgs(
+    val eventName: String,
+    val data: Map<String, Any>
+)
+
 @CrossOrigin("\${datatoggle.webapp_url}")
 @RestController
 class CustomerRestApi(
@@ -76,6 +83,7 @@ class CustomerRestApi(
     private val workspaceSourceRepo: WorkspaceSourceRepo,
     private val workspaceConnectionRepo: WorkspaceConnectionRepo,
     private val workspaceMemberRepo: WorkspaceMemberRepo,
+    private val eventRepo: EventRepo,
     private val configExporter: CloudflareConfigExporter,
     @Value("\${datatoggle.destination_scripts_url_prefix}") private val destinationScriptsUrlPrefix: String
 ) {
@@ -253,6 +261,20 @@ class CustomerRestApi(
         return ClientGlobalConfig(
             lastModification = lastModification.toString(),
             destinations = dests
+        )
+    }
+
+
+    @Transactional
+    @PostMapping("/api/customer/event")
+    suspend fun postEvent(@RequestHeader(name="Authorization") token: String, @RequestBody args: PostEventArgs) {
+        val user = getLoggedUser(token)
+        eventRepo.save(
+            DbEvent(
+                userAccountUri = user.uri,
+                eventName = args.eventName,
+                eventData = DbUtils.mapToJson(args.data)
+            )
         )
     }
 }
