@@ -74,6 +74,8 @@ class PostEventArgs(
     val data: Map<String, Any>
 )
 
+class PostEventReply()
+
 @CrossOrigin("\${datatoggle.webapp_url}")
 @RestController
 class CustomerRestApi(
@@ -267,7 +269,7 @@ class CustomerRestApi(
 
     @Transactional
     @PostMapping("/api/customer/event")
-    suspend fun postEvent(@RequestHeader(name="Authorization") token: String, @RequestBody args: PostEventArgs) {
+    suspend fun postEvent(@RequestHeader(name="Authorization") token: String, @RequestBody args: PostEventArgs): PostEventReply {
         val user = getLoggedUser(token)
         eventRepo.save(
             DbEvent(
@@ -276,5 +278,6 @@ class CustomerRestApi(
                 eventData = DbUtils.mapToJson(args.data)
             )
         )
+        return PostEventReply()
     }
 }
