@@ -23,12 +23,12 @@ data class RestDestinationDef(
 data class RestDestinationConfig(
     val destinationUri: String,
     val isEnabled: Boolean,
-    val destinationSpecificConfig: Map<String,Any?>
+    val destinationSpecificConfig: Map<String,Any>
 )
 
 data class RestDestinationConfigWithInfo(
     val config: RestDestinationConfig,
-    val paramErrors: Map<String,String>,
+    val paramErrors: Map<String,String>, // key is param field uri, value is error message
 )
 
 enum class RestParamType{
@@ -43,5 +43,8 @@ data class RestDestinationParamDef(
     val uri: String,
     val name: String,
     val type: RestParamType,
-    val defaultValue: Any
+    val defaultValue: Any,
+    val isMandatory: Boolean
+    // all mandatory field must be filled to enable a destination
+    // a field is filled if not null or empty (for a string or a dict)
 )

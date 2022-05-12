@@ -3,32 +3,52 @@ package com.datatoggle.server.destination
 enum class DestinationDef(
     val uri: String,
     val displayName: String,
-    val parameters: List<DestinationParamDef>
+    val parameters: List<IDestinationParamDef>
 ) {
 
     Segment("segment", "Segment", listOf(
-        DestinationParamDef("write_key", "Write key", DestinationParamType.String, "", true)
+        DestinationParamDefString("write_key", "Write key", true, defaultValue = "")
     )){
     },
-
     Mixpanel("mixpanel", "Mixpanel", listOf(
-        DestinationParamDef("token", "Project token", DestinationParamType.String, "", true),
-        DestinationParamDef("config", "Config", DestinationParamType.Dict, mapOf<String, Any>(), false),
+        DestinationParamDefString("token", "Project token", true, ""),
+        DestinationParamDefDict("config", "Config", false, mapOf()),
     ));
 
     companion object {
         val byUri = values().asList().associateBy { it.uri }
     }
-
 }
 
-class DestinationParamDef(
-    val uri: String,
-    val name: String,
-    val type: DestinationParamType,
-    val defaultValue: Any,
-    val mandatory: Boolean // mandatory == not empty (string not empty, dict not empty)
-)
+//TODO NICO: 1) upgrade version 2) make it sealed interface 3) virer notion de paramType devenu inutile
+interface IDestinationParamDef {
+    val uri: String
+    val name: String
+    val type: DestinationParamType
+    val isMandatory: Boolean // mandatory == not empty (string not empty, dict not empty)
+    val defaultValue: Any
+}
+
+class DestinationParamDefString(
+    override val uri: String,
+    override val name: String,
+    override val isMandatory: Boolean,
+    override val defaultValue: String,
+) : IDestinationParamDef {
+    override val type: DestinationParamType
+        get() = DestinationParamType.String
+}
+
+class DestinationParamDefDict(
+    override val uri: String,
+    override val name: String,
+    override val isMandatory: Boolean,
+    override val defaultValue: Map<String, Any>,
+) : IDestinationParamDef {
+    override val type: DestinationParamType
+        get() = DestinationParamType.Dict
+}
+
 
 enum class DestinationParamType {
     Int,

@@ -49,7 +49,8 @@ class CustomerRestAdapter {
                         uri = it.uri,
                         name = it.name,
                         type = toRestParamType(it.type),
-                        defaultValue = it.defaultValue
+                        defaultValue = it.defaultValue,
+                        isMandatory = it.isMandatory
                     )
                 }
             )

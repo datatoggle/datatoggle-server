@@ -1,5 +1,6 @@
 package com.datatoggle.server.api.customer
 
+import com.datatoggle.server.api.customer.DestinationCheck.Companion.enrichSpecificConfigWithDefault
 import com.datatoggle.server.db.DbEvent
 import com.datatoggle.server.db.DbWorkspace
 import com.datatoggle.server.db.DbWorkspaceConnection
@@ -180,11 +181,15 @@ class CustomerRestApi(
         )
     }
 
+    // TODO NICO: Quand on sauve une config, les parametres manquants doivent être ajoutés avec la valeur par defaut
+
     @Transactional
     @PostMapping("/api/customer/destination-configs")
     suspend fun postUpsertDestinationConfig(
         @RequestHeader(name="Authorization") token: String,
         @RequestBody args: PostDestinationConfigArgs): PostDestinationConfigReply {
+
+        val errors = DestinationCheck.checkConfigParams(args.config)
 
         val user = getLoggedUser(token)
         val workspace = workspaceRepo.findByUserAccountIdAndWorkspaceUri(user.id, args.workspaceUri)
@@ -193,27 +198,43 @@ class CustomerRestApi(
         val previousDbDest =
             workspaceDestinationRepo.findByDestinationUriAndWorkspaceId(args.config.destinationUri, workspace.id)
 
-        val dbDest = DbWorkspaceDestination(
-            id = previousDbDest?.id ?: 0,
-            enabled = args.config.isEnabled,
-            workspaceId = workspace.id,
-            destinationUri = args.config.destinationUri,
-            destinationSpecificConfig = DbUtils.mapToJson(args.config.destinationSpecificConfig), //args.config.config
-            lastModificationDatetime = Instant.now()
-        )
+        val result = if (previousDbDest == null && args.config.isEnabled) {
+            // a new destination is always created as disabled
+            throw Exception("Cannot save a new destination config as enabled")
+        } else if (errors.isEmpty() || ! args.config.isEnabled) {
+            // it's ok to save invalid state only if destination is not enabled
 
-        // we don't save data if it's invalid and enabled
-        val savedDest = workspaceDestinationRepo.save(dbDest)
+            val enrichedConfig = enrichSpecificConfigWithDefault(
+                args.config.destinationUri,
+                args.config.destinationSpecificConfig)
 
-        if (previousDbDest == null){ // new destination -> create connection
-            workspaceConnectionRepo.save(DbWorkspaceConnection(
+            val dbDest = DbWorkspaceDestination(
+                id = previousDbDest?.id ?: 0,
+                enabled = args.config.isEnabled,
                 workspaceId = workspace.id,
-                sourceId = dbSource.id,
-                destinationId = savedDest.id
-            ))
+                destinationUri = args.config.destinationUri,
+                destinationSpecificConfig = DbUtils.mapToJson(enrichedConfig),
+                lastModificationDatetime = Instant.now()
+            )
+
+            // we don't save data if it's invalid and enabled
+            val savedDest = workspaceDestinationRepo.save(dbDest)
+
+            if (previousDbDest == null) { // new destination -> create connection
+                workspaceConnectionRepo.save(
+                    DbWorkspaceConnection(
+                        workspaceId = workspace.id,
+                        sourceId = dbSource.id,
+                        destinationId = savedDest.id
+                    )
+                )
+            }
+            savedDest
+        } else {
+            previousDbDest!! /*cannot be null because it's the case where isEnabled = true*/
         }
 
-        val result = CustomerRestAdapter.toRestDestinationConfigWithInfo(savedDest)
+        val restResult = CustomerRestAdapter.toRestDestinationConfigWithInfo(result)
 
         val success = configExporter.exportConf(dbSource.apiKey.toString(), buildConfig(workspace))
         if (!success){
@@ -222,9 +243,10 @@ class CustomerRestApi(
 
         return PostDestinationConfigReply(
             true,
-            result
+            restResult
         )
     }
+
 
     private suspend fun getWorkspaceSource(workspace: DbWorkspace): DbWorkspaceSource {
         val dbSources = workspaceSourceRepo.findByWorkspaceId(workspace.id)
