@@ -181,63 +181,64 @@ class CustomerRestApi(
         )
     }
 
-    // TODO NICO: Quand on sauve une config, les parametres manquants doivent être ajoutés avec la valeur par defaut
-
     @Transactional
     @PostMapping("/api/customer/destination-configs")
     suspend fun postUpsertDestinationConfig(
         @RequestHeader(name="Authorization") token: String,
         @RequestBody args: PostDestinationConfigArgs): PostDestinationConfigReply {
 
-        val errors = DestinationCheck.checkConfigParams(args.config)
-
         val user = getLoggedUser(token)
+        val errors = DestinationCheck.checkConfigParams(args.config.destinationUri, args.config.destinationSpecificConfig)
+
+        if (errors.isNotEmpty() && args.config.isEnabled){
+            return PostDestinationConfigReply(
+                false, RestDestinationConfigWithInfo(args.config, errors)
+            )
+        }
+
         val workspace = workspaceRepo.findByUserAccountIdAndWorkspaceUri(user.id, args.workspaceUri)
         val dbSource = getWorkspaceSource(workspace)
 
         val previousDbDest =
             workspaceDestinationRepo.findByDestinationUriAndWorkspaceId(args.config.destinationUri, workspace.id)
 
-        val result = if (previousDbDest == null && args.config.isEnabled) {
+        if (previousDbDest == null && args.config.isEnabled) {
             // a new destination is always created as disabled
+            // this should not happen
             throw Exception("Cannot save a new destination config as enabled")
-        } else if (errors.isEmpty() || ! args.config.isEnabled) {
-            // it's ok to save invalid state only if destination is not enabled
-
-            val enrichedConfig = enrichSpecificConfigWithDefault(
-                args.config.destinationUri,
-                args.config.destinationSpecificConfig)
-
-            val dbDest = DbWorkspaceDestination(
-                id = previousDbDest?.id ?: 0,
-                enabled = args.config.isEnabled,
-                workspaceId = workspace.id,
-                destinationUri = args.config.destinationUri,
-                destinationSpecificConfig = DbUtils.mapToJson(enrichedConfig),
-                lastModificationDatetime = Instant.now()
-            )
-
-            // we don't save data if it's invalid and enabled
-            val savedDest = workspaceDestinationRepo.save(dbDest)
-
-            if (previousDbDest == null) { // new destination -> create connection
-                workspaceConnectionRepo.save(
-                    DbWorkspaceConnection(
-                        workspaceId = workspace.id,
-                        sourceId = dbSource.id,
-                        destinationId = savedDest.id
-                    )
-                )
-            }
-            savedDest
-        } else {
-            previousDbDest!! /*cannot be null because it's the case where isEnabled = true*/
         }
 
-        val restResult = CustomerRestAdapter.toRestDestinationConfigWithInfo(result)
+        // here: either the is no error or config is not enabled: we can save it
+        val enrichedConfig = enrichSpecificConfigWithDefault(
+            args.config.destinationUri,
+            args.config.destinationSpecificConfig)
+
+        val dbDest = DbWorkspaceDestination(
+            id = previousDbDest?.id ?: 0,
+            enabled = args.config.isEnabled,
+            workspaceId = workspace.id,
+            destinationUri = args.config.destinationUri,
+            destinationSpecificConfig = DbUtils.mapToJson(enrichedConfig),
+            lastModificationDatetime = Instant.now()
+        )
+
+        val savedDest = workspaceDestinationRepo.save(dbDest)
+
+        if (previousDbDest == null) { // new destination -> create connection
+            workspaceConnectionRepo.save(
+                DbWorkspaceConnection(
+                    workspaceId = workspace.id,
+                    sourceId = dbSource.id,
+                    destinationId = savedDest.id
+                )
+            )
+        }
+
+        val restResult = CustomerRestAdapter.toRestDestinationConfigWithInfo(savedDest)
 
         val success = configExporter.exportConf(dbSource.apiKey.toString(), buildConfig(workspace))
         if (!success){
+            // NB: this should be done asynchronously, with retry and logging
             throw Exception("could not export config for workspace '${workspace.uri}'")
         }
 

@@ -19,12 +19,12 @@ class DestinationCheck {
         }
 
         // TODO Add tests when we add other destination defs (with int, float, boolean, mandatory or not)
-        fun checkConfigParams(config: RestDestinationConfig): Map<String,String> {
-            val def: DestinationDef = DestinationDef.byUri[config.destinationUri]!!
+        fun checkConfigParams(destinationDefUri: String, config: Map<String, Any>): Map<String,String> {
+            val def: DestinationDef = DestinationDef.byUri[destinationDefUri]!!
             val result = mutableMapOf<String, String>()
                 for (d in def.parameters){
                     if (d.isMandatory){
-                        val value = config.destinationSpecificConfig[d.uri]
+                        val value = config[d.uri]
                         if (value == null || isConsideredEmpty(value)){
                             result[d.uri] = "Mandatory"
                         } else if (! typeIsOk(value, d)){

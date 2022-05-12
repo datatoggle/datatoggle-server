@@ -29,16 +29,19 @@ class CustomerRestAdapter {
             )
         }
 
-        fun toRestDestinationConfigWithInfo(dbDestination: DbWorkspaceDestination): RestDestinationConfigWithInfo {
-            val config = DbUtils.jsonToMap(dbDestination.destinationSpecificConfig)
+        fun toRestDestinationConfigWithInfo(
+            dbDestination: DbWorkspaceDestination
+        ): RestDestinationConfigWithInfo {
+            val specificConfig = DbUtils.jsonToMap(dbDestination.destinationSpecificConfig)
+            val paramErrors = DestinationCheck.checkConfigParams(dbDestination.destinationUri, specificConfig)
 
             return RestDestinationConfigWithInfo(
                 config = RestDestinationConfig(
                     destinationUri = dbDestination.destinationUri,
                     isEnabled = dbDestination.enabled,
-                    destinationSpecificConfig = config
+                    destinationSpecificConfig = specificConfig
                 ),
-                paramErrors = mapOf()
+                paramErrors = paramErrors
             )
         }
 
