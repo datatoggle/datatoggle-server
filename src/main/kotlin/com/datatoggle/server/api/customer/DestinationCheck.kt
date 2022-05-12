@@ -1,7 +1,9 @@
 package com.datatoggle.server.api.customer
 
 import com.datatoggle.server.destination.DestinationDef
-import com.datatoggle.server.destination.DestinationParamType
+import com.datatoggle.server.destination.DestinationParamDefDict
+import com.datatoggle.server.destination.DestinationParamDefString
+import com.datatoggle.server.destination.IDestinationParamDef
 
 class DestinationCheck {
 
@@ -25,8 +27,8 @@ class DestinationCheck {
                         val value = config.destinationSpecificConfig[d.uri]
                         if (value == null || isConsideredEmpty(value)){
                             result[d.uri] = "Mandatory"
-                        } else if (! typeIsOk(value, d.type)){
-                            result[d.uri] = "Must be ${typeLabel(d.type)}"
+                        } else if (! typeIsOk(value, d)){
+                            result[d.uri] = "Must be ${typeLabel(d)}"
                         }
                     }
                 }
@@ -34,32 +36,26 @@ class DestinationCheck {
         }
 
         private fun isConsideredEmpty(value: Any): Boolean {
-            if (value is String){
-                return value.isEmpty()
+            return if (value is String){
+                value.isEmpty()
             } else if (value is Map<*,*>){
-                return value.isEmpty()
+                value.isEmpty()
             } else {
-                return false // a bool or number is never empty.
+                false // a bool or number is never empty.
             }
         }
 
-        private fun typeIsOk(value: Any, paramType: DestinationParamType): Boolean{
-            return when(paramType){
-                DestinationParamType.Int -> value is Int
-                DestinationParamType.Float -> value is Float || value is Int || value is Double
-                DestinationParamType.String -> value is String
-                DestinationParamType.Boolean -> value is Boolean
-                DestinationParamType.Dict -> value is Map<*, *>
+        private fun typeIsOk(value: Any, def: IDestinationParamDef): Boolean{
+            return when(def){
+                is DestinationParamDefDict -> value is Map<*, *>
+                is DestinationParamDefString -> value is String
             }
         }
 
-        private fun typeLabel(paramType: DestinationParamType): String {
-            return when(paramType){
-                DestinationParamType.Int -> "an integer"
-                DestinationParamType.Float -> "a number"
-                DestinationParamType.String -> "a string"
-                DestinationParamType.Boolean -> "true or false"
-                DestinationParamType.Dict -> "a map"
+        private fun typeLabel(def: IDestinationParamDef): String {
+            return when(def){
+                is DestinationParamDefDict -> "a map"
+                is DestinationParamDefString -> "a string"
             }
         }
 

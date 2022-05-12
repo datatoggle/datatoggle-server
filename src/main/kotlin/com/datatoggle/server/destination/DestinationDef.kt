@@ -8,8 +8,7 @@ enum class DestinationDef(
 
     Segment("segment", "Segment", listOf(
         DestinationParamDefString("write_key", "Write key", true, defaultValue = "")
-    )){
-    },
+    )),
     Mixpanel("mixpanel", "Mixpanel", listOf(
         DestinationParamDefString("token", "Project token", true, ""),
         DestinationParamDefDict("config", "Config", false, mapOf()),
@@ -21,10 +20,9 @@ enum class DestinationDef(
 }
 
 //TODO NICO: 1) upgrade version 2) make it sealed interface 3) virer notion de paramType devenu inutile
-interface IDestinationParamDef {
+sealed interface IDestinationParamDef {
     val uri: String
     val name: String
-    val type: DestinationParamType
     val isMandatory: Boolean // mandatory == not empty (string not empty, dict not empty)
     val defaultValue: Any
 }
@@ -34,26 +32,12 @@ class DestinationParamDefString(
     override val name: String,
     override val isMandatory: Boolean,
     override val defaultValue: String,
-) : IDestinationParamDef {
-    override val type: DestinationParamType
-        get() = DestinationParamType.String
-}
+) : IDestinationParamDef
 
 class DestinationParamDefDict(
     override val uri: String,
     override val name: String,
     override val isMandatory: Boolean,
     override val defaultValue: Map<String, Any>,
-) : IDestinationParamDef {
-    override val type: DestinationParamType
-        get() = DestinationParamType.Dict
-}
+) : IDestinationParamDef
 
-
-enum class DestinationParamType {
-    Int,
-    Float,
-    String,
-    Boolean,
-    Dict
-}

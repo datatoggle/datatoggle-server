@@ -4,7 +4,9 @@ import com.datatoggle.server.db.DbWorkspace
 import com.datatoggle.server.db.DbWorkspaceDestination
 import com.datatoggle.server.db.DbWorkspaceSource
 import com.datatoggle.server.destination.DestinationDef
-import com.datatoggle.server.destination.DestinationParamType
+import com.datatoggle.server.destination.DestinationParamDefDict
+import com.datatoggle.server.destination.DestinationParamDefString
+import com.datatoggle.server.destination.IDestinationParamDef
 import com.datatoggle.server.tools.DbUtils
 
 class CustomerRestAdapter {
@@ -48,7 +50,7 @@ class CustomerRestAdapter {
                     RestDestinationParamDef(
                         uri = it.uri,
                         name = it.name,
-                        type = toRestParamType(it.type),
+                        type = toRestParamType(it),
                         defaultValue = it.defaultValue,
                         isMandatory = it.isMandatory
                     )
@@ -56,14 +58,12 @@ class CustomerRestAdapter {
             )
         }
 
-        private fun toRestParamType(paramType: DestinationParamType): RestParamType {
-            return when(paramType){
-                DestinationParamType.String -> RestParamType.String
-                DestinationParamType.Boolean -> RestParamType.Boolean
-                DestinationParamType.Dict -> RestParamType.Dict
-                DestinationParamType.Int -> RestParamType.Int
-                DestinationParamType.Float -> RestParamType.Float
+        private fun toRestParamType(def: IDestinationParamDef): RestParamType {
+            return when(def){
+                is DestinationParamDefDict -> RestParamType.Dict
+                is DestinationParamDefString -> RestParamType.String
             }
+
         }
 
 
