@@ -22,8 +22,8 @@ class DestinationCheck {
             val result = mutableMapOf<String, String>()
                 for (d in def.parameters){
                     if (d.isMandatory){
-                        val value: Any? = config.destinationSpecificConfig[d.uri]
-                        if (value == null){
+                        val value = config.destinationSpecificConfig[d.uri]
+                        if (value == null || isConsideredEmpty(value)){
                             result[d.uri] = "Mandatory"
                         } else if (! typeIsOk(value, d.type)){
                             result[d.uri] = "Must be ${typeLabel(d.type)}"
@@ -31,6 +31,16 @@ class DestinationCheck {
                     }
                 }
             return result
+        }
+
+        private fun isConsideredEmpty(value: Any): Boolean {
+            if (value is String){
+                return value.isEmpty()
+            } else if (value is Map<*,*>){
+                return value.isEmpty()
+            } else {
+                return false // a bool or number is never empty.
+            }
         }
 
         private fun typeIsOk(value: Any, paramType: DestinationParamType): Boolean{
