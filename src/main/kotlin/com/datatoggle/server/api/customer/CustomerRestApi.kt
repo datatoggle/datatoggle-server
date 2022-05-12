@@ -208,7 +208,7 @@ class CustomerRestApi(
             throw Exception("Cannot save a new destination config as enabled")
         }
 
-        // here: either the is no error or config is not enabled: we can save it
+        // here: either there is no error or config is not enabled: we can save it
         val enrichedConfig = enrichSpecificConfigWithDefault(
             args.config.destinationUri,
             args.config.destinationSpecificConfig)
