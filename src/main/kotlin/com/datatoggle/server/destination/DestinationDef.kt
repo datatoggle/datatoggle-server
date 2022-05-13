@@ -19,7 +19,6 @@ enum class DestinationDef(
     }
 }
 
-//TODO NICO: 1) upgrade version 2) make it sealed interface 3) virer notion de paramType devenu inutile
 sealed interface IDestinationParamDef {
     val uri: String
     val name: String
