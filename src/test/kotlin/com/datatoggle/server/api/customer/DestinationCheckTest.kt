@@ -14,11 +14,7 @@ internal class DestinationCheckTest {
             "config" to mapOf<String, Any>()
         )
 
-        val config = RestDestinationConfig(
-            DestinationDef.Mixpanel.uri, true, specificConfig
-        )
-
-        val result = DestinationCheck.checkConfigParams(config)
+        val result = DestinationCheck.checkConfigParams(DestinationDef.Mixpanel.uri, specificConfig)
         Assertions.assertThat(result).isEmpty()
     }
 
@@ -30,11 +26,7 @@ internal class DestinationCheckTest {
                 "config" to mapOf<String, Any>()
             )
 
-            val config = RestDestinationConfig(
-                DestinationDef.Mixpanel.uri, true, specificConfig
-            )
-
-            val result = DestinationCheck.checkConfigParams(config)
+            val result = DestinationCheck.checkConfigParams(DestinationDef.Mixpanel.uri, specificConfig)
             Assertions.assertThat(result.size).isEqualTo(1)
             Assertions.assertThat(result["token"]).isEqualTo("Mandatory")
     }
@@ -47,11 +39,7 @@ internal class DestinationCheckTest {
             "config" to mapOf<String, Any>()
         )
 
-        val config = RestDestinationConfig(
-            DestinationDef.Mixpanel.uri, true, specificConfig
-        )
-
-        val result = DestinationCheck.checkConfigParams(config)
+        val result = DestinationCheck.checkConfigParams(DestinationDef.Mixpanel.uri, specificConfig)
         Assertions.assertThat(result.size).isEqualTo(1)
         Assertions.assertThat(result["token"]).isEqualTo("Must be a string")
     }
