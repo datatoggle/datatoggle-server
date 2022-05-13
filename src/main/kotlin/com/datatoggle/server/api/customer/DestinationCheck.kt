@@ -1,6 +1,7 @@
 package com.datatoggle.server.api.customer
 
 import com.datatoggle.server.destination.DestinationDef
+import com.datatoggle.server.destination.DestinationParamDefBool
 import com.datatoggle.server.destination.DestinationParamDefDict
 import com.datatoggle.server.destination.DestinationParamDefString
 import com.datatoggle.server.destination.IDestinationParamDef
@@ -49,6 +50,7 @@ class DestinationCheck {
             return when(def){
                 is DestinationParamDefDict -> value is Map<*, *>
                 is DestinationParamDefString -> value is String
+                is DestinationParamDefBool -> value is Boolean
             }
         }
 
@@ -56,6 +58,7 @@ class DestinationCheck {
             return when(def){
                 is DestinationParamDefDict -> "a map"
                 is DestinationParamDefString -> "a string"
+                is DestinationParamDefBool -> "a boolean"
             }
         }
 

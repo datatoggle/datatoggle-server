@@ -4,6 +4,7 @@ import com.datatoggle.server.db.DbWorkspace
 import com.datatoggle.server.db.DbWorkspaceDestination
 import com.datatoggle.server.db.DbWorkspaceSource
 import com.datatoggle.server.destination.DestinationDef
+import com.datatoggle.server.destination.DestinationParamDefBool
 import com.datatoggle.server.destination.DestinationParamDefDict
 import com.datatoggle.server.destination.DestinationParamDefString
 import com.datatoggle.server.destination.IDestinationParamDef
@@ -65,6 +66,7 @@ class CustomerRestAdapter {
             return when(def){
                 is DestinationParamDefDict -> RestParamType.Dict
                 is DestinationParamDefString -> RestParamType.String
+                is DestinationParamDefBool -> RestParamType.Boolean
             }
 
         }

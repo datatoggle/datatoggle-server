@@ -41,3 +41,9 @@ class DestinationParamDefDict(
     override val defaultValue: Map<String, Any>,
 ) : IDestinationParamDef
 
+class DestinationParamDefBool(
+    override val uri: String,
+    override val name: String,
+    override val isMandatory: Boolean,
+    override val defaultValue: Boolean,
+) : IDestinationParamDef
