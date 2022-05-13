@@ -11,4 +11,6 @@ jobs:
           java-version: '11'
       - run: ./gradlew build
       - run: ./gradlew test
+      - run: ./gradlew ktlintCheck
+
 
