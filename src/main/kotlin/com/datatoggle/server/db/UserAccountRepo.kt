@@ -11,6 +11,6 @@ data class DbUserAccount(
     val firebaseAuthUid: String
 )
 
-interface UserAccountRepo : CoroutineCrudRepository<DbUserAccount, Int>{
+interface UserAccountRepo : CoroutineCrudRepository<DbUserAccount, Int> {
     suspend fun findByFirebaseAuthUid(firebaseAuthUid: String): DbUserAccount?
 }

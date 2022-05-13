@@ -8,10 +8,10 @@ class DbUtils {
 
     companion object {
 
-        fun jsonToMap(dbJson: io.r2dbc.postgresql.codec.Json): Map<String, Any>{
+        fun jsonToMap(dbJson: io.r2dbc.postgresql.codec.Json): Map<String, Any> {
             val gson = Gson()
             val empMapType: Type = object : TypeToken<Map<String, Any?>?>() {}.getType()
-            val config = gson.fromJson<Map<String,Any>>(dbJson.asString(), empMapType)
+            val config = gson.fromJson<Map<String, Any>>(dbJson.asString(), empMapType)
             return config
         }
 
@@ -21,7 +21,5 @@ class DbUtils {
             val jsonDb = io.r2dbc.postgresql.codec.Json.of(jsonStr)
             return jsonDb
         }
-
     }
-
 }

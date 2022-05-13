@@ -12,6 +12,4 @@ data class DbWorkspaceConnection(
     val destinationId: Int
 )
 
-interface WorkspaceConnectionRepo : CoroutineCrudRepository<DbWorkspaceConnection, Int>{
-
-}
+interface WorkspaceConnectionRepo : CoroutineCrudRepository<DbWorkspaceConnection, Int>

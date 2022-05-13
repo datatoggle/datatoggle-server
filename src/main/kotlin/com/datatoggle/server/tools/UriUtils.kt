@@ -9,21 +9,19 @@ private const val NB_HEXA_CHAR_DISAMBIGUATION = 12
 // too long uri are bad for SEO
 private const val MAX_URI_SIZE = 80
 
-
-fun generateUri(strToClean: String, strToHashToEnsureUniqueness: String = "") : String {
-    return cleanString(strToClean)+ "-" + hashString(strToClean + strToHashToEnsureUniqueness).substring(0, NB_HEXA_CHAR_DISAMBIGUATION)
+fun generateUri(strToClean: String, strToHashToEnsureUniqueness: String = ""): String {
+    return cleanString(strToClean) + "-" + hashString(strToClean + strToHashToEnsureUniqueness).substring(0, NB_HEXA_CHAR_DISAMBIGUATION)
 }
 
+private fun cleanString(strToClean: String): String {
 
-private fun cleanString(strToClean: String) : String {
-
-    return normalizeString(strToClean) //replace accentuated chars by equivalent
-            .toLowerCase()
-            .replace(Regex("[ ']+"), "-") // replace separators by "-"
-            .replace(Regex("[^a-z0-9-]"), "") //remove all non standards characters
-            .replace(Regex("[-]+"), "-") //remove duplicated "-"
-            .trim('-') //remove trailing "-"
-            .take(MAX_URI_SIZE)
+    return normalizeString(strToClean) // replace accentuated chars by equivalent
+        .toLowerCase()
+        .replace(Regex("[ ']+"), "-") // replace separators by "-"
+        .replace(Regex("[^a-z0-9-]"), "") // remove all non standards characters
+        .replace(Regex("[-]+"), "-") // remove duplicated "-"
+        .trim('-') // remove trailing "-"
+        .take(MAX_URI_SIZE)
 }
 
 // https://www.rgagnon.com/javadetails/java-0456.html
@@ -33,9 +31,8 @@ private fun normalizeString(value: String): String {
     return REGEX_UNACCENT.replace(temp, "")
 }
 
-
-private fun hashString(strToHashToEnsureUniqueness: String) : String {
-    val digest = MessageDigest.getInstance("SHA-256");
+private fun hashString(strToHashToEnsureUniqueness: String): String {
+    val digest = MessageDigest.getInstance("SHA-256")
     val hashBytes = digest.digest(strToHashToEnsureUniqueness.byteInputStream().readAllBytes())
     return bytesToHex(hashBytes)
 }

@@ -10,7 +10,7 @@ class DestinationCheck {
 
     companion object {
 
-        fun enrichSpecificConfigWithDefault(destinationDefUri: String, config: Map<String, Any>): Map<String, Any>{
+        fun enrichSpecificConfigWithDefault(destinationDefUri: String, config: Map<String, Any>): Map<String, Any> {
             val def: DestinationDef = DestinationDef.byUri[destinationDefUri]!!
             return config.plus(
                 def.parameters
@@ -20,34 +20,34 @@ class DestinationCheck {
         }
 
         // TODO Add tests when we add other destination defs (with int, float, boolean, mandatory or not)
-        fun checkConfigParams(destinationDefUri: String, config: Map<String, Any>): Map<String,String> {
+        fun checkConfigParams(destinationDefUri: String, config: Map<String, Any>): Map<String, String> {
             val def: DestinationDef = DestinationDef.byUri[destinationDefUri]!!
             val result = mutableMapOf<String, String>()
-                for (d in def.parameters){
-                    if (d.isMandatory){
-                        val value = config[d.uri]
-                        if (value == null || isConsideredEmpty(value)){
-                            result[d.uri] = "Mandatory"
-                        } else if (! typeIsOk(value, d)){
-                            result[d.uri] = "Must be ${typeLabel(d)}"
-                        }
+            for (d in def.parameters) {
+                if (d.isMandatory) {
+                    val value = config[d.uri]
+                    if (value == null || isConsideredEmpty(value)) {
+                        result[d.uri] = "Mandatory"
+                    } else if (! typeIsOk(value, d)) {
+                        result[d.uri] = "Must be ${typeLabel(d)}"
                     }
                 }
+            }
             return result
         }
 
         private fun isConsideredEmpty(value: Any): Boolean {
-            return if (value is String){
+            return if (value is String) {
                 value.isEmpty()
-            } else if (value is Map<*,*>){
+            } else if (value is Map<*, *>) {
                 value.isEmpty()
             } else {
                 false // a bool or number is never empty.
             }
         }
 
-        private fun typeIsOk(value: Any, def: IDestinationParamDef): Boolean{
-            return when(def){
+        private fun typeIsOk(value: Any, def: IDestinationParamDef): Boolean {
+            return when (def) {
                 is DestinationParamDefDict -> value is Map<*, *>
                 is DestinationParamDefString -> value is String
                 is DestinationParamDefBool -> value is Boolean
@@ -55,12 +55,11 @@ class DestinationCheck {
         }
 
         private fun typeLabel(def: IDestinationParamDef): String {
-            return when(def){
+            return when (def) {
                 is DestinationParamDefDict -> "a map"
                 is DestinationParamDefString -> "a string"
                 is DestinationParamDefBool -> "a boolean"
             }
         }
-
     }
 }

@@ -11,5 +11,4 @@ class FileLoader {
             return resource
         }
     }
-
 }

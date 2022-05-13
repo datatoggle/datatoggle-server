@@ -9,10 +9,12 @@ data class RestWorkspace(
     val uri: String,
     val apiKey: String,
     val name: String,
-    val destinations: List<RestDestinationConfigWithInfo>)
+    val destinations: List<RestDestinationConfigWithInfo>
+)
 
 data class RestUserInfo(
-    val uri: String)
+    val uri: String
+)
 
 data class RestDestinationDef(
     val uri: String,
@@ -23,15 +25,15 @@ data class RestDestinationDef(
 data class RestDestinationConfig(
     val destinationUri: String,
     val isEnabled: Boolean,
-    val destinationSpecificConfig: Map<String,Any>
+    val destinationSpecificConfig: Map<String, Any>
 )
 
 data class RestDestinationConfigWithInfo(
     val config: RestDestinationConfig,
-    val paramErrors: Map<String,String>, // key is param field uri, value is error message
+    val paramErrors: Map<String, String>, // key is param field uri, value is error message
 )
 
-enum class RestParamType{
+enum class RestParamType {
     Boolean,
     String,
     Dict,

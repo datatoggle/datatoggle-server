@@ -6,13 +6,19 @@ enum class DestinationDef(
     val parameters: List<IDestinationParamDef>
 ) {
 
-    Segment("segment", "Segment", listOf(
-        DestinationParamDefString("write_key", "Write key", true, defaultValue = "")
-    )),
-    Mixpanel("mixpanel", "Mixpanel", listOf(
-        DestinationParamDefString("token", "Project token", true, ""),
-        DestinationParamDefDict("config", "Config", false, mapOf()),
-    ));
+    Segment(
+        "segment", "Segment",
+        listOf(
+            DestinationParamDefString("write_key", "Write key", true, defaultValue = "")
+        )
+    ),
+    Mixpanel(
+        "mixpanel", "Mixpanel",
+        listOf(
+            DestinationParamDefString("token", "Project token", true, ""),
+            DestinationParamDefDict("config", "Config", false, mapOf()),
+        )
+    );
 
     companion object {
         val byUri = values().asList().associateBy { it.uri }

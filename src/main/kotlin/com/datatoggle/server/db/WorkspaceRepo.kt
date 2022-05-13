@@ -12,14 +12,17 @@ data class DbWorkspace(
     val name: String
 )
 
-interface WorkspaceRepo : CoroutineCrudRepository<DbWorkspace, Int>{
+interface WorkspaceRepo : CoroutineCrudRepository<DbWorkspace, Int> {
 
-    @Query("SELECT p.* FROM workspace p " +
+    @Query(
+        "SELECT p.* FROM workspace p " +
             "JOIN workspace_member pm ON pm.workspace_id = p.id " +
-            "WHERE pm.user_account_id = :userAccountId")
+            "WHERE pm.user_account_id = :userAccountId"
+    )
     suspend fun findByUserAccountId(userAccountId: Int): List<DbWorkspace>
 
-    @Query("SELECT p.* FROM workspace p " +
+    @Query(
+        "SELECT p.* FROM workspace p " +
             "JOIN workspace_member pm ON pm.workspace_id = p.id " +
             "WHERE pm.user_account_id = :userAccountId " +
             "AND p.uri = :workspaceUri"

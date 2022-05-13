@@ -3,7 +3,7 @@ package com.datatoggle.server.db
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
 import org.springframework.data.repository.kotlin.CoroutineCrudRepository
-import java.util.*
+import java.util.UUID
 
 @Table("workspace_source")
 data class DbWorkspaceSource(
@@ -14,7 +14,7 @@ data class DbWorkspaceSource(
     val apiKey: UUID
 )
 
-interface WorkspaceSourceRepo : CoroutineCrudRepository<DbWorkspaceSource, Int>{
+interface WorkspaceSourceRepo : CoroutineCrudRepository<DbWorkspaceSource, Int> {
 
     suspend fun findByWorkspaceId(workspaceId: Int): List<DbWorkspaceSource>
 }

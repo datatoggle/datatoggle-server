@@ -12,5 +12,4 @@ data class DbEvent(
     val eventData: io.r2dbc.postgresql.codec.Json
 )
 
-interface EventRepo : CoroutineCrudRepository<DbEvent, Int>{
-}
+interface EventRepo : CoroutineCrudRepository<DbEvent, Int>

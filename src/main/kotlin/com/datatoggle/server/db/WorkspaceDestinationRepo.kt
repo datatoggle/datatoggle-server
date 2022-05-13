@@ -15,7 +15,7 @@ data class DbWorkspaceDestination(
     val lastModificationDatetime: Instant
 )
 
-interface WorkspaceDestinationRepo : CoroutineCrudRepository<DbWorkspaceDestination, Int>{
+interface WorkspaceDestinationRepo : CoroutineCrudRepository<DbWorkspaceDestination, Int> {
 
     suspend fun findByWorkspaceId(workspaceId: Int): List<DbWorkspaceDestination>
 

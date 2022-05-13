@@ -8,18 +8,17 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import java.io.InputStream
 
-
 @SpringBootApplication
 class ServerApplication
 
 fun main(args: Array<String>) {
-	val serviceAccount: InputStream = getFileFromResource("secrets/firebase_private_key.json")
+    val serviceAccount: InputStream = getFileFromResource("secrets/firebase_private_key.json")
 
-	val options: FirebaseOptions = FirebaseOptions.builder()
-		.setCredentials(GoogleCredentials.fromStream(serviceAccount))
-		.build()
+    val options: FirebaseOptions = FirebaseOptions.builder()
+        .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+        .build()
 
-	FirebaseApp.initializeApp(options)
+    FirebaseApp.initializeApp(options)
 
-	runApplication<ServerApplication>(*args)
+    runApplication<ServerApplication>(*args)
 }

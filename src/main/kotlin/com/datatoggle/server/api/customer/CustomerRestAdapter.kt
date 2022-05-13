@@ -63,15 +63,11 @@ class CustomerRestAdapter {
         }
 
         private fun toRestParamType(def: IDestinationParamDef): RestParamType {
-            return when(def){
+            return when (def) {
                 is DestinationParamDefDict -> RestParamType.Dict
                 is DestinationParamDefString -> RestParamType.String
                 is DestinationParamDefBool -> RestParamType.Boolean
             }
-
         }
-
-
     }
-
 }

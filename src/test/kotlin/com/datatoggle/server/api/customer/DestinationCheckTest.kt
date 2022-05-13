@@ -21,14 +21,14 @@ internal class DestinationCheckTest {
     @Test
     fun checkConfigWithEmptyStringMandatoryReturnError() {
 
-            val specificConfig = mapOf(
-                "token" to "",
-                "config" to mapOf<String, Any>()
-            )
+        val specificConfig = mapOf(
+            "token" to "",
+            "config" to mapOf<String, Any>()
+        )
 
-            val result = DestinationCheck.checkConfigParams(DestinationDef.Mixpanel.uri, specificConfig)
-            Assertions.assertThat(result.size).isEqualTo(1)
-            Assertions.assertThat(result["token"]).isEqualTo("Mandatory")
+        val result = DestinationCheck.checkConfigParams(DestinationDef.Mixpanel.uri, specificConfig)
+        Assertions.assertThat(result.size).isEqualTo(1)
+        Assertions.assertThat(result["token"]).isEqualTo("Mandatory")
     }
 
     @Test
@@ -43,7 +43,4 @@ internal class DestinationCheckTest {
         Assertions.assertThat(result.size).isEqualTo(1)
         Assertions.assertThat(result["token"]).isEqualTo("Must be a string")
     }
-
-
-
 }
