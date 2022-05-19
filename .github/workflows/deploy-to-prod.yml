@@ -9,13 +9,13 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '11'
-      #- run: ./gradlew build
-      #- run: ./gradlew test
-      #- run: ./gradlew ktlintCheck
+      - run: ./gradlew build
+      - run: ./gradlew test
+      - run: ./gradlew ktlintCheck
       # authenticate to gcloud and setup gcloud CLI
       - uses: 'google-github-actions/auth@v0'
         with:
           credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
 
       - uses: 'google-github-actions/setup-gcloud@v0'
-      - run: 'gcloud info'
+      - run: ./github/scripts/deploy_to_cloud.sh
