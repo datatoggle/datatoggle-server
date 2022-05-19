@@ -7,4 +7,4 @@ docker build . --tag gcr.io/datatoggle-b83b6/server
 docker push gcr.io/datatoggle-b83b6/server
 
 # deploy image from container registry to google cloud run
-gcloud run deploy server --image gcr.io/datatoggle-b83b6/server --platform managed --memory 1G --allow-unauthenticated --max-instances 1
+gcloud run deploy server --region europe-west1 --image gcr.io/datatoggle-b83b6/server --platform managed --memory 1G --allow-unauthenticated --max-instances 1
