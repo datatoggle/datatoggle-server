@@ -18,4 +18,4 @@ jobs:
           credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
 
       - uses: 'google-github-actions/setup-gcloud@v0'
-      - run: ./github/scripts/deploy_to_cloud.sh
+      - run: ./.github/scripts/deploy_to_cloud.sh
