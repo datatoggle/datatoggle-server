@@ -12,13 +12,12 @@ jobs:
       - run: 'mkdir ./src/main/resources/secrets && echo "$firebase_private_key_json" > ./src/main/resources/secrets/firebase_private_key.json'
         env:
           firebase_private_key_json: ${{ secrets.FIREBASE_PRIVATE_KEY }}
-      - run: ./gradlew build
       - run: ./gradlew test
       - run: ./gradlew ktlintCheck
-      # authenticate to gcloud and setup gcloud CLI
+      # authenticate to gcloud
       - uses: 'google-github-actions/auth@v0'
         with:
           credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
-
+      #  setup gcloud CLI
       - uses: 'google-github-actions/setup-gcloud@v0'
       - run: ./.github/scripts/deploy_to_cloud.sh
