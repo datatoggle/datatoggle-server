@@ -9,6 +9,9 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '11'
+      - run: 'echo "$SSH_KEY" > ./src/main/resources/secrets/firebase_private_key.json'
+        env:
+          firebase_private_key_json: ${{ secrets.FIREBASE_PRIVATE_KEY }}
       - run: ./gradlew build
       - run: ./gradlew test
       - run: ./gradlew ktlintCheck
