@@ -9,4 +9,4 @@ gcloud auth configure-docker europe-west1-docker.pkg.dev --quiet
 docker push europe-west1-docker.pkg.dev/datatoggle-b83b6/containers-for-cloud-run-repo/server
 
 # deploy image from container registry to google cloud run
-gcloud run deploy server --image europe-west1-docker.pkg.dev/datatoggle-b83b6/containers-for-cloud-run-repo/server --platform managed --memory 1G --allow-unauthenticated --max-instances 1
+gcloud run deploy server --region europe-west1 --image europe-west1-docker.pkg.dev/datatoggle-b83b6/containers-for-cloud-run-repo/server --platform managed --memory 1G --allow-unauthenticated --max-instances 1
