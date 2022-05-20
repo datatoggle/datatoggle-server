@@ -63,7 +63,3 @@ publishing {
         }
     }
 }
-
-
-// so gradle can authenticate to registry when runnin ./gradlew publish
-// https://cloud.google.com/artifact-registry/docs/java/authentication

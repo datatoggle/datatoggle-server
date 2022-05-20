@@ -16,7 +16,7 @@ fun generateUri(strToClean: String, strToHashToEnsureUniqueness: String = ""): S
 private fun cleanString(strToClean: String): String {
 
     return normalizeString(strToClean) // replace accentuated chars by equivalent
-        .toLowerCase()
+        .lowercase()
         .replace(Regex("[ ']+"), "-") // replace separators by "-"
         .replace(Regex("[^a-z0-9-]"), "") // remove all non standards characters
         .replace(Regex("[-]+"), "-") // remove duplicated "-"
