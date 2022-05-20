@@ -6,6 +6,10 @@ plugins {
     kotlin("jvm") version "1.6.21"
     kotlin("plugin.spring") version "1.6.21"
     id("org.jlleitschuh.gradle.ktlint") version "10.3.0" // https://github.com/jlleitschuh/ktlint-gradle
+
+    // to deploy to google cloud artifact registry, following https://cloud.google.com/artifact-registry/docs/java/store-java
+    id("maven-publish")
+    id("com.google.cloud.artifactregistry.gradle-plugin") version "2.1.5"
 }
 
 group = "com.datatoggle"
@@ -14,6 +18,8 @@ java.sourceCompatibility = JavaVersion.VERSION_11
 
 repositories {
     mavenCentral()
+    // to deploy to google cloud artifact registry, following https://cloud.google.com/artifact-registry/docs/java/store-java
+    maven("artifactregistry://europe-west1-maven.pkg.dev/datatoggle-b83b6/java-for-cloud-run-repo")
 }
 
 dependencies {
@@ -44,3 +50,20 @@ tasks.withType<KotlinCompile> {
 tasks.withType<Test> {
     useJUnitPlatform()
 }
+
+// to deploy to google cloud artifact registry, following https://cloud.google.com/artifact-registry/docs/java/store-java
+publishing {
+    repositories {
+        maven("artifactregistry://europe-west1-maven.pkg.dev/datatoggle-b83b6/java-for-cloud-run-repo")
+    }
+    // https://docs.gradle.org/current/userguide/publishing_maven.html#sec:identity_values_in_the_generated_pom
+    publications {
+        create<MavenPublication>("maven") {
+            from(components["java"])
+        }
+    }
+}
+
+
+// so gradle can authenticate to registry when runnin ./gradlew publish
+// https://cloud.google.com/artifact-registry/docs/java/authentication
